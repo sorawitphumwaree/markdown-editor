@@ -1,0 +1,11 @@
+bin/
+obj/
+node_modules/
+dist/
+.vs/
+*.user
+*.suo
+artifacts/
+TestResults/
+src/MarkdownEditor.App/Web/
+

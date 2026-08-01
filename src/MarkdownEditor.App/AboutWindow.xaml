@@ -1,0 +1,97 @@
+<Window x:Class="MarkdownEditor.App.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="About Markdown Editor" Width="600" Height="650"
+        Icon="Assets/AppIcon.ico"
+        ResizeMode="NoResize" WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource WindowBackgroundBrush}"
+        Foreground="{DynamicResource WindowForegroundBrush}">
+  <Grid>
+    <Border Height="6" VerticalAlignment="Top"
+            Background="{DynamicResource BrandVioletBrush}"/>
+    <Grid Margin="30,26,30,24">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="Auto"/>
+      </Grid.RowDefinitions>
+
+      <StackPanel Orientation="Horizontal">
+        <Image Source="Assets/Logo.png" Width="64" Height="64" Margin="0,0,16,0"/>
+        <StackPanel VerticalAlignment="Center">
+          <TextBlock Text="Markdown Editor" FontSize="27" FontWeight="SemiBold"/>
+          <TextBlock x:Name="VersionText" Margin="1,3,0,0"
+                     Foreground="{DynamicResource MutedForegroundBrush}"/>
+        </StackPanel>
+      </StackPanel>
+
+      <TextBlock Grid.Row="1" Margin="0,12,0,16" TextWrapping="Wrap"
+                 Text="A Windows desktop editor for technical Markdown with synchronized preview, Mermaid diagrams, source navigation, and PDF export."/>
+
+      <Grid Grid.Row="2">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="84"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <TextBlock Text="Author" FontWeight="SemiBold"/>
+        <TextBlock Grid.Column="1" Text="Sorawit Phumwaree (Ham)"/>
+        <TextBlock Grid.Row="1" Text="License" FontWeight="SemiBold" Margin="0,7,0,0"/>
+        <TextBlock Grid.Row="1" Grid.Column="1" Text="Apache License 2.0" Margin="0,7,0,0"/>
+      </Grid>
+
+      <Border Grid.Row="3" Margin="0,20,0,16" Padding="16,13"
+              Background="{DynamicResource ControlBackgroundBrush}"
+              BorderBrush="{DynamicResource ControlBorderBrush}"
+              BorderThickness="1" CornerRadius="7">
+        <StackPanel>
+          <TextBlock Text="Key features" FontSize="16" FontWeight="SemiBold"
+                     Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,7"/>
+          <TextBlock Text="• Preview and Split editing with multiple document tabs" Margin="0,2"/>
+          <TextBlock Text="• Mermaid diagrams and syntax-highlighted code" Margin="0,2"/>
+          <TextBlock Text="• Click navigation between source and rendered content" Margin="0,2"/>
+          <TextBlock Text="• Folder Explorer, relative links, recovery snapshots, and PDF export"
+                     TextWrapping="Wrap" Margin="0,2"/>
+        </StackPanel>
+      </Border>
+
+      <TextBlock Grid.Row="4" Text="Documentation and project"
+                 FontSize="16" FontWeight="SemiBold" Margin="0,0,0,7"/>
+
+      <StackPanel Grid.Row="5">
+        <TextBlock Margin="0,3">
+          <Hyperlink NavigateUri="https://github.com/sorawitphumwaree/markdown-editor/blob/main/docs/user-manual.md"
+                     RequestNavigate="OpenLink">User Manual</Hyperlink>
+        </TextBlock>
+        <TextBlock Margin="0,3">
+          <Hyperlink NavigateUri="https://github.com/sorawitphumwaree/markdown-editor/blob/main/CHANGELOG.md"
+                     RequestNavigate="OpenLink">Changelog and release notes</Hyperlink>
+        </TextBlock>
+        <TextBlock Margin="0,3">
+          <Hyperlink NavigateUri="https://github.com/sorawitphumwaree/markdown-editor/releases"
+                     RequestNavigate="OpenLink">Downloads and GitHub Releases</Hyperlink>
+        </TextBlock>
+        <TextBlock Margin="0,3">
+          <Hyperlink NavigateUri="https://github.com/sorawitphumwaree/markdown-editor"
+                     RequestNavigate="OpenLink">Source repository</Hyperlink>
+        </TextBlock>
+        <TextBlock Margin="0,3">
+          <Hyperlink NavigateUri="https://github.com/sorawitphumwaree/markdown-editor/blob/main/LICENSE"
+                     RequestNavigate="OpenLink">Apache License 2.0</Hyperlink>
+        </TextBlock>
+      </StackPanel>
+
+      <Button Grid.Row="6" Content="Close" Width="92" Padding="10,5"
+              HorizontalAlignment="Right" IsDefault="True" Click="CloseWindow"
+              Background="{DynamicResource AccentBrush}" Foreground="White"
+              BorderBrush="{DynamicResource AccentBorderBrush}"/>
+    </Grid>
+  </Grid>
+</Window>

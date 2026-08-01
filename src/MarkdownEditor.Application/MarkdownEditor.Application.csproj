@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\MarkdownEditor.Domain\MarkdownEditor.Domain.csproj" />
+  </ItemGroup>
+</Project>
+

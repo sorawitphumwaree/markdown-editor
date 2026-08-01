@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <UseWPF>true</UseWPF>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
+    <Version>1.0.0</Version>
+    <Authors>Sorawit Phumwaree (Ham)</Authors>
+    <Description>A lightweight Windows desktop editor for technical Markdown.</Description>
+    <RepositoryUrl>https://github.com/sorawitphumwaree/markdown-editor</RepositoryUrl>
+  </PropertyGroup>
+  <ItemGroup>
+    <Resource Include="Assets\AppIcon.ico" />
+    <Resource Include="Assets\Logo.png" />
+    <Content Include="Web\**\*"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MarkdownEditor.Application\MarkdownEditor.Application.csproj" />
+    <ProjectReference Include="..\MarkdownEditor.Infrastructure\MarkdownEditor.Infrastructure.csproj" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Microsoft.Web.WebView2" />
+    <PackageReference Include="Serilog.Extensions.Logging" />
+    <PackageReference Include="Serilog.Sinks.File" />
+  </ItemGroup>
+  <Target Name="RestoreWeb" BeforeTargets="BuildWeb"
+          Condition="'$(BuildWeb)' != 'false' And !Exists('..\MarkdownEditor.Web\node_modules')">
+    <Message Importance="high"
+             Text="Restoring MarkdownEditor.Web dependencies through Corepack..." />
+    <Exec Command="corepack pnpm install --frozen-lockfile"
+          WorkingDirectory="..\MarkdownEditor.Web"
+          EnvironmentVariables="COREPACK_ENABLE_PROJECT_SPEC=1" />
+  </Target>
+  <Target Name="BuildWeb" BeforeTargets="BeforeBuild"
+          DependsOnTargets="RestoreWeb"
+          Condition="'$(BuildWeb)' != 'false'">
+    <Exec Command="corepack pnpm build -- --logLevel error"
+          WorkingDirectory="..\MarkdownEditor.Web"
+          EnvironmentVariables="COREPACK_ENABLE_PROJECT_SPEC=1" />
+    <ItemGroup>
+      <Content Remove="Web\**\*" />
+      <Content Include="Web\**\*"
+               CopyToOutputDirectory="PreserveNewest"
+               CopyToPublishDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
+</Project>

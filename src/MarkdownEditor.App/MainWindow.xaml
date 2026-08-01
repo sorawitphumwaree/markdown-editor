@@ -1,0 +1,202 @@
+<Window x:Class="MarkdownEditor.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        xmlns:vm="clr-namespace:MarkdownEditor.App.ViewModels"
+        Title="Markdown Editor" Width="1280" Height="800" MinWidth="800" MinHeight="500"
+        Icon="Assets/AppIcon.ico"
+        Closing="OnClosing" PreviewKeyDown="OnPreviewKeyDown"
+        Background="{DynamicResource WindowBackgroundBrush}"
+        Foreground="{DynamicResource WindowForegroundBrush}">
+  <Window.Resources>
+    <Style x:Key="ViewModeSegmentStyle" TargetType="ToggleButton">
+      <Setter Property="MinWidth" Value="70"/>
+      <Setter Property="Padding" Value="10,3"/>
+      <Setter Property="Margin" Value="0"/>
+      <Setter Property="Background" Value="White"/>
+      <Setter Property="BorderBrush" Value="#9CA3AF"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Foreground" Value="#111827"/>
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="FontWeight" Value="Normal"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+      <Setter Property="ToolTipService.ShowDuration" Value="10000"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ToggleButton">
+            <Border x:Name="SegmentBorder"
+                    Padding="{TemplateBinding Padding}"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="4">
+              <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                RecognizesAccessKey="True"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsKeyboardFocused" Value="True">
+                <Setter TargetName="SegmentBorder" Property="BorderThickness" Value="2"/>
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="SegmentBorder" Property="Opacity" Value="0.55"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+      <Style.Triggers>
+        <MultiTrigger>
+          <MultiTrigger.Conditions>
+            <Condition Property="IsMouseOver" Value="True"/>
+            <Condition Property="IsChecked" Value="False"/>
+          </MultiTrigger.Conditions>
+          <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
+          <Setter Property="BorderBrush" Value="{DynamicResource AccentBorderBrush}"/>
+        </MultiTrigger>
+        <Trigger Property="IsChecked" Value="True">
+          <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+          <Setter Property="BorderBrush" Value="{DynamicResource AccentBorderBrush}"/>
+          <Setter Property="Foreground" Value="#FFFFFF"/>
+          <Setter Property="FontWeight" Value="SemiBold"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+    <Style TargetType="TabItem">
+      <Setter Property="Padding" Value="12,6"/>
+      <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderBrush}"/>
+      <Setter Property="Foreground" Value="{DynamicResource WindowForegroundBrush}"/>
+      <Style.Triggers>
+        <Trigger Property="IsMouseOver" Value="True">
+          <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
+        </Trigger>
+        <Trigger Property="IsSelected" Value="True">
+          <Setter Property="Background" Value="White"/>
+          <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+          <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+          <Setter Property="FontWeight" Value="SemiBold"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+  </Window.Resources>
+
+  <DockPanel Background="{DynamicResource WindowBackgroundBrush}">
+    <Menu DockPanel.Dock="Top"
+          Background="{DynamicResource ControlBackgroundBrush}"
+          Foreground="{DynamicResource WindowForegroundBrush}">
+      <MenuItem Header="_File">
+        <MenuItem Header="_New" InputGestureText="Ctrl+N / Ctrl+T" Click="NewFile"/>
+        <MenuItem Header="_Open…" InputGestureText="Ctrl+O" Click="OpenFile"/>
+        <MenuItem Header="Open _Folder…" Click="OpenFolder"/>
+        <Separator/>
+        <MenuItem Header="_Save" InputGestureText="Ctrl+S" Click="SaveFile"/>
+        <MenuItem Header="Save _As…" InputGestureText="Ctrl+Shift+S" Click="SaveAsFile"/>
+        <Separator/>
+        <MenuItem Header="Export _PDF…" Click="ExportPdf"/>
+        <Separator/>
+        <MenuItem Header="E_xit" Click="Exit"/>
+      </MenuItem>
+      <MenuItem Header="_Help">
+        <MenuItem Header="_User Manual"
+                  Tag="https://github.com/sorawitphumwaree/markdown-editor/blob/main/docs/user-manual.md"
+                  Click="OpenHelpReference"/>
+        <MenuItem Header="_Release Notes"
+                  Tag="https://github.com/sorawitphumwaree/markdown-editor/blob/main/CHANGELOG.md"
+                  Click="OpenHelpReference"/>
+        <Separator/>
+        <MenuItem Header="Markdown format" Tag="https://commonmark.org/help/"
+                  Click="OpenHelpReference"/>
+        <MenuItem Header="GitHub Flavored Markdown" Tag="https://github.github.com/gfm/"
+                  Click="OpenHelpReference"/>
+        <MenuItem Header="Mermaid diagrams" Tag="https://mermaid.js.org/intro/"
+                  Click="OpenHelpReference"/>
+        <Separator/>
+        <MenuItem Header="_About Markdown Editor" Click="ShowAbout"/>
+      </MenuItem>
+    </Menu>
+
+    <ToolBar DockPanel.Dock="Top"
+             Background="{DynamicResource ControlBackgroundBrush}"
+             Foreground="{DynamicResource WindowForegroundBrush}">
+      <Image Source="Assets/Logo.png" Width="26" Height="26" Margin="4,0,7,0"/>
+      <TextBlock Text="Markdown Editor" FontWeight="SemiBold"
+                 Foreground="{DynamicResource BrandCharcoalBrush}"
+                 Margin="0,0,18,0" VerticalAlignment="Center"/>
+      <TextBlock Text="View:" Margin="4,0,6,0" VerticalAlignment="Center"/>
+      <StackPanel Orientation="Horizontal">
+        <ToggleButton x:Name="PreviewModeButton"
+                      Content="Preview" Style="{StaticResource ViewModeSegmentStyle}"
+                      ToolTip="Show the rendered document"
+                      Click="SelectPreviewView"/>
+        <ToggleButton x:Name="SplitModeButton"
+                      Content="Split" Style="{StaticResource ViewModeSegmentStyle}"
+                      ToolTip="Show the editor and rendered document side by side"
+                      Click="SelectSplitView"/>
+      </StackPanel>
+    </ToolBar>
+
+    <StatusBar DockPanel.Dock="Bottom"
+               Background="{DynamicResource ControlBackgroundBrush}"
+               Foreground="{DynamicResource WindowForegroundBrush}">
+      <TextBlock Text="{Binding Status}"/>
+    </StatusBar>
+
+    <Grid>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="240"/>
+        <ColumnDefinition Width="5"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+
+      <TreeView Grid.Column="0" ItemsSource="{Binding WorkspaceItems}"
+                Background="{DynamicResource ControlBackgroundBrush}"
+                Foreground="{DynamicResource WindowForegroundBrush}"
+                BorderBrush="{DynamicResource ControlBorderBrush}"
+                TreeViewItem.Expanded="WorkspaceItemExpanded"
+                MouseDoubleClick="WorkspaceItemDoubleClick">
+        <TreeView.Resources>
+          <HierarchicalDataTemplate DataType="{x:Type vm:WorkspaceItemViewModel}"
+                                    ItemsSource="{Binding Children}">
+            <TextBlock Text="{Binding Name}" ToolTip="{Binding Path}"/>
+          </HierarchicalDataTemplate>
+        </TreeView.Resources>
+      </TreeView>
+      <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch"
+                    Background="{DynamicResource ControlBorderBrush}"/>
+
+      <Grid Grid.Column="2" Background="{DynamicResource WindowBackgroundBrush}">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <TabControl x:Name="DocumentTabs"
+                    ItemsSource="{Binding Documents}"
+                    SelectedItem="{Binding ActiveDocument, Mode=TwoWay}"
+                    Background="{DynamicResource ControlBackgroundBrush}"
+                    Foreground="{DynamicResource WindowForegroundBrush}"
+                    BorderBrush="{DynamicResource ControlBorderBrush}"
+                    SelectionChanged="ActiveTabChanged">
+          <TabControl.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding Header}" ToolTip="{Binding FilePath}">
+                <TextBlock.ContextMenu>
+                  <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                    <MenuItem Header="_Save" Click="TabSave"/>
+                    <MenuItem Header="Export _PDF…" Click="TabExportPdf"/>
+                    <MenuItem Header="_Reload from Disk" Click="TabReload"/>
+                    <Separator/>
+                    <MenuItem Header="_Close" Click="TabClose"/>
+                  </ContextMenu>
+                </TextBlock.ContextMenu>
+              </TextBlock>
+            </DataTemplate>
+          </TabControl.ItemTemplate>
+        </TabControl>
+        <wv2:WebView2 x:Name="WebView" Grid.Row="1"/>
+      </Grid>
+    </Grid>
+  </DockPanel>
+</Window>

@@ -1,0 +1,30 @@
+# Changelog
+
+All notable user-facing changes to Markdown Editor are documented here.
+
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+## [1.0.0] - 2026-08-01
+
+### Added
+
+- Native Windows Markdown editing with Preview and Split modes.
+- Multiple document tabs with per-document view and viewport state.
+- CommonMark/GFM-style rendering, syntax-highlighted code, and Mermaid diagrams.
+- Click navigation between source lines and rendered content, including detailed
+  table, code-line, and Mermaid mappings.
+- Folder Explorer and relative Markdown link navigation.
+- Save, Save As, reload from disk, and safe modified-tab close handling.
+- PDF export with render, font, and image readiness.
+- Local recovery snapshots for unsaved edits.
+- Single-instance file forwarding for Markdown files opened from Windows.
+- Help references, user manual, product information, and release links.
+
+### Fixed
+
+- Forwarded files now become the active visible tab.
+- Closing the final tab clears stale editor and preview content.
+- Mermaid diagrams render reliably on the initial document load.
+- Portable packages include the complete WebView frontend.
+
+[1.0.0]: https://github.com/sorawitphumwaree/markdown-editor/releases/tag/v1.0.0
