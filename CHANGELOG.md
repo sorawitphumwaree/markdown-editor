@@ -4,6 +4,22 @@ All notable user-facing changes to Markdown Editor are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.0.1] - 2026-08-05
+
+### Added
+
+- A versioned Mermaid support matrix covering 23 supported diagram families.
+- A comprehensive Markdown acceptance document for Preview, Split, and PDF
+  export checks.
+- Edge-based rendering tests that exercise the real Mermaid and SVG
+  sanitization pipeline.
+
+### Fixed
+
+- Mermaid labels, including state names in `stateDiagram` and
+  `stateDiagram-v2`, now survive strict SVG sanitization by rendering as pure
+  SVG text instead of HTML inside `foreignObject`.
+
 ## [1.0.0] - 2026-08-01
 
 ### Added
@@ -27,4 +43,5 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Mermaid diagrams render reliably on the initial document load.
 - Portable packages include the complete WebView frontend.
 
+[1.0.1]: https://github.com/sorawitphumwaree/markdown-editor/releases/tag/v1.0.1
 [1.0.0]: https://github.com/sorawitphumwaree/markdown-editor/releases/tag/v1.0.0

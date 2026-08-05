@@ -7,5 +7,6 @@ dist/
 *.suo
 artifacts/
 TestResults/
+test-results/
+playwright-report/
 src/MarkdownEditor.App/Web/
-
