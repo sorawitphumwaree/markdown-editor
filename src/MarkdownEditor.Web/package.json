@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "test": "vitest run",
+    "test:browser": "playwright test",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -24,8 +25,9 @@
     "shiki": "^3.6.0"
   },
   "devDependencies": {
-    "@types/markdown-it": "^14.1.2",
+    "@playwright/test": "^1.62.1",
     "@types/jsdom": "^21.1.7",
+    "@types/markdown-it": "^14.1.2",
     "@types/node": "^22.15.21",
     "jsdom": "^26.1.0",
     "typescript": "^5.8.3",

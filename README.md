@@ -50,7 +50,10 @@ Domain and Application do not depend on WPF, WebView2, or concrete persistence.
 See [product behavior](docs/product-behavior.md),
 [architecture](docs/architecture.md), and
 [phase status](docs/phase-status.md). For application usage, see the
-[user manual](docs/user-manual.md) and [changelog](CHANGELOG.md).
+[user manual](docs/user-manual.md) and [changelog](CHANGELOG.md). Mermaid
+compatibility is defined in the [support matrix](docs/mermaid-support.md), with
+a [manual rendering fixture](docs/test-cases/mermaid-rendering.md) for release
+acceptance.
 
 ## Requirements for running the packaged app
 
@@ -96,6 +99,8 @@ Create the portable Windows package with:
 ```
 
 The ZIP is written to `artifacts/markdown-editor-win-x64.zip`.
+It also includes `mermaid-rendering-test-cases.md` for manual rendering
+acceptance after extraction.
 
 ## Project
 

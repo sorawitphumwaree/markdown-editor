@@ -87,6 +87,7 @@ export async function renderMarkdown(
   mermaid.initialize({
     startOnLoad: false,
     securityLevel: "strict",
+    htmlLabels: false,
     theme: theme === "dark" ? "dark" : "base",
     themeVariables: theme === "dark" ? undefined : {
       primaryColor: "#eee9fc",
