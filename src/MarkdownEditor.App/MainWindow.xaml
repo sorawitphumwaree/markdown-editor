@@ -178,7 +178,11 @@
                     Background="{DynamicResource ControlBackgroundBrush}"
                     Foreground="{DynamicResource WindowForegroundBrush}"
                     BorderBrush="{DynamicResource ControlBorderBrush}"
-                    SelectionChanged="ActiveTabChanged">
+                    SelectionChanged="ActiveTabChanged"
+                    PreviewMouseLeftButtonDown="TabDragStarted"
+                    PreviewMouseMove="TabDragMoved"
+                    PreviewMouseLeftButtonUp="TabDragCompleted"
+                    LostMouseCapture="TabDragCancelled">
           <TabControl.ItemTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding Header}" ToolTip="{Binding FilePath}">
@@ -195,6 +199,12 @@
             </DataTemplate>
           </TabControl.ItemTemplate>
         </TabControl>
+        <Canvas x:Name="TabDragOverlay" Grid.Row="0" IsHitTestVisible="False"
+                Panel.ZIndex="10">
+          <Rectangle x:Name="TabInsertionIndicator" Width="3" Height="28"
+                     Visibility="Collapsed" Fill="{DynamicResource AccentBrush}"
+                     RadiusX="1.5" RadiusY="1.5"/>
+        </Canvas>
         <wv2:WebView2 x:Name="WebView" Grid.Row="1"/>
       </Grid>
     </Grid>

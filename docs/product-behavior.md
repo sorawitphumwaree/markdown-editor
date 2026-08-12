@@ -21,6 +21,9 @@ general-purpose IDE features.
   content or restore obsolete viewport positions.
 - Each tab owns its content, modified state, cursor line, editor viewport,
   preview viewport, and view mode.
+- Tabs can be reordered with a horizontal pointer drag. Moving a tab preserves
+  its identity and all per-document state. The visible order controls keyboard
+  traversal, context actions, and closing for the rest of the process lifetime.
 
 ## Cross-pane navigation
 

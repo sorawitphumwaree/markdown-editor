@@ -53,6 +53,11 @@ implemented.
 Opening an already-open document activates its existing tab instead of creating
 a duplicate.
 
+Drag a document tab horizontally to reorder it. A violet insertion line shows
+where the tab will be placed. The active document and its unsaved content,
+view mode, cursor, and scroll positions stay attached to the moved tab. The
+order is retained while the application is running and resets after restart.
+
 ## Create, edit, and save
 
 Use **File > New**, `Ctrl+N`, or `Ctrl+T` to create an untitled document.
@@ -179,4 +184,3 @@ the affected diagram.
 - [Changelog](../CHANGELOG.md)
 - [Product behavior](product-behavior.md)
 - [Report a security issue](../SECURITY.md)
-

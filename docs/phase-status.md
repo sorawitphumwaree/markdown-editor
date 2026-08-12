@@ -1,6 +1,6 @@
 # Phase Status
 
-Reviewed 2026-08-01.
+Reviewed 2026-08-12.
 
 This repository contains a buildable implementation across all planned technical
 areas. It is an engineering baseline, not yet a claim that every v1.0 acceptance
@@ -9,11 +9,11 @@ criterion is release-qualified.
 | Phase | Implemented baseline | Remaining acceptance work |
 |---|---|---|
 | 1 Foundation | Solution, DI, logging, WPF, WebView2, Vite, versioned JSON bridge, .NET 9 SDK/CI alignment | Startup benchmark and protocol contract tests |
-| 2 Document slice | Open, edit, preview, safe save, Save As, modified marker, highlighted Preview/Split selector, launch-mode behavior, document-tab context actions, standard document/tab shortcuts, logo-derived native/web theme | Drag/drop |
+| 2 Document slice | Open, edit, preview, safe save, Save As, modified marker, highlighted Preview/Split selector, launch-mode behavior, document-tab context actions, standard document/tab shortcuts, horizontal tab drag/drop, logo-derived native/web theme | None |
 | 3 Rendering | GFM plugins, DOMPurify, Shiki, light-only UI, full-width Preview layout, detached stale-render rejection by document/version/generation | Golden-document visual suite and bundle-size optimization |
 | 4 Mermaid | SVG render, strict mode, per-diagram errors, themes, collision-free concurrent render IDs | Zoom/pan controls and broader rendering tests |
 | 5 Synchronization | Token source ranges, row-level table mapping, line-level fenced-code mapping, diagram-aware Flowchart/Sequence/Class mapping, directional click navigation, independent manual scrolling, viewport persistence across edit/save/reload | Additional Mermaid diagram families, large-document stability, and feedback-loop tests |
-| 6 Workspace/tabs | Folder tree, multiple document state, relative and same-document fragment links, standard new/open/save/save-as/tab hotkeys, save/close/export/reload tab menu, single-instance file forwarding | Create/rename/delete, tab reorder/reopen, native relative-image serving, workspace search |
+| 6 Workspace/tabs | Folder tree, multiple document state, runtime tab reordering, relative and same-document fragment links, standard new/open/save/save-as/tab hotkeys, save/close/export/reload tab menu, single-instance file forwarding | Create/rename/delete, reopen closed tab, cross-restart tab-order persistence, native relative-image serving, workspace search |
 | 7 Reliability | Temporary-file replacement, serialized per-document recovery writes, JSON settings/recovery stores, debounced watcher | Wire recovery restore/session/settings UI and conflict-resolution dialogs |
 | 8 PDF | WebView2 print path, paginated print CSS, Mermaid/Shiki/font/image readiness, request-correlated `export.ready` | Expose page options and qualify representative long documents |
 | 9 Release | Tests, docs, user manual, changelog, in-app documentation links, CI, portable ZIP workflow, policies | Playwright end-to-end suite, signing, installer choice, Windows 10/11 qualification |
