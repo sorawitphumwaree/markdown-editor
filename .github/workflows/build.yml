@@ -23,4 +23,5 @@ jobs:
       - run: pnpm --dir src/MarkdownEditor.Web install --frozen-lockfile
       - run: pnpm --dir src/MarkdownEditor.Web typecheck
       - run: pnpm --dir src/MarkdownEditor.Web test
+      - run: pnpm --dir src/MarkdownEditor.Web test:browser
       - run: dotnet test MarkdownEditor.sln --configuration Release
