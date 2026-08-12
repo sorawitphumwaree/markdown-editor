@@ -4,6 +4,20 @@ All notable user-facing changes to Markdown Editor are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.1.0] - 2026-08-12
+
+### Added
+
+- Horizontal pointer-drag reordering for document tabs, with a visible insertion
+  indicator and support for dropping at either boundary.
+- Runtime preservation of the reordered tab sequence across editing, saving,
+  context-menu actions, keyboard traversal, and closing.
+
+### Changed
+
+- Reordering moves the existing document-tab instance so unsaved content, dirty
+  state, view mode, cursor line, and editor and preview positions are preserved.
+
 ## [1.0.1] - 2026-08-05
 
 ### Added
@@ -43,5 +57,6 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Mermaid diagrams render reliably on the initial document load.
 - Portable packages include the complete WebView frontend.
 
+[1.1.0]: https://github.com/sorawitphumwaree/markdown-editor/releases/tag/v1.1.0
 [1.0.1]: https://github.com/sorawitphumwaree/markdown-editor/releases/tag/v1.0.1
 [1.0.0]: https://github.com/sorawitphumwaree/markdown-editor/releases/tag/v1.0.0

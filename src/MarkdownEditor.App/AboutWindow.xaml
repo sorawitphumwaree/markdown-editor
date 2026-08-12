@@ -55,6 +55,7 @@
           <TextBlock Text="Key features" FontSize="16" FontWeight="SemiBold"
                      Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,7"/>
           <TextBlock Text="• Preview and Split editing with multiple document tabs" Margin="0,2"/>
+          <TextBlock Text="• Horizontal drag-and-drop tab reordering" Margin="0,2"/>
           <TextBlock Text="• Mermaid diagrams and syntax-highlighted code" Margin="0,2"/>
           <TextBlock Text="• Click navigation between source and rendered content" Margin="0,2"/>
           <TextBlock Text="• Folder Explorer, relative links, recovery snapshots, and PDF export"

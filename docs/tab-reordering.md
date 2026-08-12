@@ -31,6 +31,6 @@ the same object.
 ## Acceptance coverage
 
 Automated tests cover index translation, boundary positions, no-op positions,
-and invalid inputs. Presentation tests and manual qualification will cover the
-WPF pointer interaction, indicator placement, state preservation, context-menu
-actions, selection, closing, and keyboard traversal.
+invalid inputs, collection order, and object-identity preservation. Manual WPF
+qualification covers pointer threshold and capture, indicator placement, state
+preservation, context-menu actions, selection, closing, and keyboard traversal.
