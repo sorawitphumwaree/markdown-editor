@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using FluentAssertions;
 using MarkdownEditor.Application.Documents;
 using Xunit;
@@ -61,4 +62,39 @@ public sealed class TabReorderTests
         act.Should().Throw<ArgumentOutOfRangeException>()
             .WithParameterName(parameterName);
     }
+
+    [Theory]
+    [InlineData(0, 3, "B,C,A,D")]
+    [InlineData(3, 0, "D,A,B,C")]
+    [InlineData(1, 4, "A,C,D,B")]
+    public void Move_ReordersExistingInstances(
+        int sourceIndex,
+        int insertionIndex,
+        string expectedOrder)
+    {
+        var original = new[] { new Tab("A"), new Tab("B"), new Tab("C"), new Tab("D") };
+        var items = new ObservableCollection<Tab>(original);
+        var moved = original[sourceIndex];
+
+        var changed = TabReorder.Move(items, sourceIndex, insertionIndex);
+
+        changed.Should().BeTrue();
+        items.Select(item => item.Name).Should().Equal(expectedOrder.Split(','));
+        items.Should().ContainSingle(item => ReferenceEquals(item, moved));
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    public void Move_BesideOriginalPosition_IsNoOp(int insertionIndex)
+    {
+        var items = new ObservableCollection<string>(["A", "B", "C", "D"]);
+
+        var changed = TabReorder.Move(items, 1, insertionIndex);
+
+        changed.Should().BeFalse();
+        items.Should().Equal("A", "B", "C", "D");
+    }
+
+    private sealed record Tab(string Name);
 }

@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+
 namespace MarkdownEditor.Application.Documents;
 
 public static class TabReorder
@@ -17,5 +19,23 @@ public static class TabReorder
         return sourceIndex < insertionIndex
             ? insertionIndex - 1
             : insertionIndex;
+    }
+
+    public static bool Move<T>(
+        ObservableCollection<T> items,
+        int sourceIndex,
+        int insertionIndex)
+    {
+        ArgumentNullException.ThrowIfNull(items);
+
+        var destinationIndex = GetDestinationIndex(
+            items.Count,
+            sourceIndex,
+            insertionIndex);
+        if (destinationIndex == sourceIndex)
+            return false;
+
+        items.Move(sourceIndex, destinationIndex);
+        return true;
     }
 }

@@ -24,6 +24,10 @@ public partial class MainWindow : Window
     private bool _webReady;
     private bool _synchronizingViewToggle;
     private TaskCompletionSource<bool>? _exportReady;
+    private Point? _tabDragOrigin;
+    private DocumentTabViewModel? _draggedTab;
+    private int? _tabInsertionIndex;
+    private bool _isTabDragging;
 
     public MainWindow(
         MainViewModel viewModel,
@@ -495,6 +499,128 @@ public partial class MainWindow : Window
     {
         SynchronizeViewToggle();
         await ActivateDocumentAsync();
+    }
+
+    private void TabDragStarted(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton != MouseButton.Left)
+            return;
+
+        var tabItem = FindAncestor<TabItem>(e.OriginalSource as DependencyObject);
+        if (tabItem?.DataContext is not DocumentTabViewModel document)
+            return;
+
+        _tabDragOrigin = e.GetPosition(DocumentTabs);
+        _draggedTab = document;
+        _tabInsertionIndex = null;
+        _isTabDragging = false;
+    }
+
+    private void TabDragMoved(object sender, MouseEventArgs e)
+    {
+        if (_tabDragOrigin is not { } origin || _draggedTab is null
+            || e.LeftButton != MouseButtonState.Pressed)
+            return;
+
+        var position = e.GetPosition(DocumentTabs);
+        if (!_isTabDragging)
+        {
+            if (Math.Abs(position.X - origin.X) < SystemParameters.MinimumHorizontalDragDistance)
+                return;
+            _isTabDragging = true;
+            Mouse.Capture(DocumentTabs);
+        }
+
+        _tabInsertionIndex = GetTabInsertionIndex(position.X);
+        ShowTabInsertionIndicator(_tabInsertionIndex.Value);
+        e.Handled = true;
+    }
+
+    private void TabDragCompleted(object sender, MouseButtonEventArgs e)
+    {
+        if (!_isTabDragging || _draggedTab is null || _tabInsertionIndex is null)
+        {
+            ResetTabDrag();
+            return;
+        }
+
+        var draggedTab = _draggedTab;
+        var insertionIndex = _tabInsertionIndex.Value;
+        ResetTabDrag();
+        _viewModel.ReorderDocument(draggedTab, insertionIndex);
+        DocumentTabs.SelectedItem = draggedTab;
+        e.Handled = true;
+    }
+
+    private void TabDragCancelled(object sender, MouseEventArgs e)
+    {
+        if (_isTabDragging && e.LeftButton == MouseButtonState.Released)
+            ResetTabDrag();
+    }
+
+    private int GetTabInsertionIndex(double pointerX)
+    {
+        for (var index = 0; index < _viewModel.Documents.Count; index++)
+        {
+            if (DocumentTabs.ItemContainerGenerator.ContainerFromIndex(index) is not TabItem tab)
+                continue;
+            var left = tab.TranslatePoint(new Point(), DocumentTabs).X;
+            if (pointerX < left + tab.ActualWidth / 2)
+                return index;
+        }
+        return _viewModel.Documents.Count;
+    }
+
+    private void ShowTabInsertionIndicator(int insertionIndex)
+    {
+        double left;
+        double height = 28;
+        if (insertionIndex < _viewModel.Documents.Count
+            && DocumentTabs.ItemContainerGenerator.ContainerFromIndex(insertionIndex) is TabItem next)
+        {
+            var point = next.TranslatePoint(new Point(), TabDragOverlay);
+            left = point.X;
+            height = next.ActualHeight;
+        }
+        else if (_viewModel.Documents.Count > 0
+            && DocumentTabs.ItemContainerGenerator.ContainerFromIndex(_viewModel.Documents.Count - 1)
+                is TabItem last)
+        {
+            var point = last.TranslatePoint(new Point(), TabDragOverlay);
+            left = point.X + last.ActualWidth;
+            height = last.ActualHeight;
+        }
+        else
+        {
+            left = 0;
+        }
+
+        Canvas.SetLeft(TabInsertionIndicator, Math.Max(0, left - TabInsertionIndicator.Width / 2));
+        Canvas.SetTop(TabInsertionIndicator, 0);
+        TabInsertionIndicator.Height = height;
+        TabInsertionIndicator.Visibility = Visibility.Visible;
+    }
+
+    private void ResetTabDrag()
+    {
+        if (Mouse.Captured == DocumentTabs)
+            Mouse.Capture(null);
+        TabInsertionIndicator.Visibility = Visibility.Collapsed;
+        _tabDragOrigin = null;
+        _draggedTab = null;
+        _tabInsertionIndex = null;
+        _isTabDragging = false;
+    }
+
+    private static T? FindAncestor<T>(DependencyObject? source) where T : DependencyObject
+    {
+        while (source is not null)
+        {
+            if (source is T match)
+                return match;
+            source = System.Windows.Media.VisualTreeHelper.GetParent(source);
+        }
+        return null;
     }
 
     private void WorkspaceItemExpanded(object sender, RoutedEventArgs e)

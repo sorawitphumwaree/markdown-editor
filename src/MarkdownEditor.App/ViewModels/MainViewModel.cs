@@ -57,6 +57,19 @@ public sealed partial class MainViewModel(
         Status = Documents.Count == 0 ? "Ready" : $"Active: {ActiveDocument!.DisplayName}";
     }
 
+    public bool ReorderDocument(DocumentTabViewModel document, int insertionIndex)
+    {
+        var sourceIndex = Documents.IndexOf(document);
+        if (sourceIndex < 0)
+            throw new ArgumentException("Document is not open.", nameof(document));
+
+        var changed = TabReorder.Move(Documents, sourceIndex, insertionIndex);
+        ActiveDocument = document;
+        if (changed)
+            Status = $"Moved {document.DisplayName} to tab {Documents.IndexOf(document) + 1}";
+        return changed;
+    }
+
     public async Task<DocumentTabViewModel> OpenAsync(string path)
     {
         var fullPath = Path.GetFullPath(path);
