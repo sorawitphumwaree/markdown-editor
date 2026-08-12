@@ -21,7 +21,10 @@ jobs:
           cache: pnpm
           cache-dependency-path: src/MarkdownEditor.Web/pnpm-lock.yaml
       - run: pnpm --dir src/MarkdownEditor.Web install --frozen-lockfile
-      - run: pnpm --dir src/MarkdownEditor.Web typecheck
-      - run: pnpm --dir src/MarkdownEditor.Web test
-      - run: pnpm --dir src/MarkdownEditor.Web test:browser
-      - run: dotnet test MarkdownEditor.sln --configuration Release
+      - run: ./scripts/verify.ps1
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-results
+          path: src/MarkdownEditor.Web/test-results
+          if-no-files-found: ignore

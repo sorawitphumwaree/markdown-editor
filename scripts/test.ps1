@@ -6,6 +6,7 @@ Push-Location $webDirectory
 try {
   corepack pnpm typecheck
   corepack pnpm test
+  corepack pnpm test:browser
 }
 finally {
   Pop-Location
