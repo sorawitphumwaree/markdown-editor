@@ -5,12 +5,14 @@ Use a feature branch, keep dependencies pointing inward, and add focused tests.
 Before opening a pull request:
 
 ```powershell
-./scripts/test.ps1
-./scripts/build-app.ps1
+./scripts/verify.ps1
 ```
 
-The test script runs .NET tests, TypeScript checking, and Vitest through
-Corepack. New domain rules belong in `MarkdownEditor.Domain`; use-case
+The verification script runs .NET unit/component/integration tests, TypeScript
+checking, Vitest, Playwright browser workflows, release packaging, archive
+integrity checks, and a packaged desktop startup smoke test. For a faster inner
+loop, use `./scripts/test.ps1`; see `docs/testing-strategy.md` for test ownership
+and scope. New domain rules belong in `MarkdownEditor.Domain`; use-case
 coordination belongs in `MarkdownEditor.Application`; filesystem and persistence
 implementations belong in `MarkdownEditor.Infrastructure`; WPF and WebView2 code
 remain presentation adapters.
