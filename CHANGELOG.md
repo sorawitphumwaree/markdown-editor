@@ -4,6 +4,17 @@ All notable user-facing changes to Markdown Editor are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Added
+
+- Contextual English-to-Thai translation for a single selected editor word,
+  opened from a right-click **Translate** action.
+- An anchored, non-blocking result popup with the language pair, part of speech,
+  concise Thai alternatives, and close, outside-click, and Escape dismissal.
+- Persisted source and destination language settings. English to Thai is the
+  supported pair in this initial translation release.
+
 ## [1.1.1] - 2026-08-17
 
 ### Fixed

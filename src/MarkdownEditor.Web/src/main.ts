@@ -6,6 +6,7 @@ import { searchKeymap } from "@codemirror/search";
 import { listen, post } from "./messaging";
 import { findSourceBlock, getRenderState, renderMarkdown } from "./renderer";
 import { resolveApplicationShortcut } from "./shortcuts";
+import { isEligibleTranslationSelection, mapTranslationPayload } from "./translation";
 import type { AppMessage, DocumentPayload } from "./types";
 import "./styles.css";
 
@@ -13,6 +14,10 @@ const editorHost = document.querySelector<HTMLElement>("#editor")!;
 const preview = document.querySelector<HTMLElement>("#preview")!;
 const workspace = document.querySelector<HTMLElement>("#workspace")!;
 const divider = document.querySelector<HTMLElement>("#divider")!;
+const translationMenu = document.querySelector<HTMLElement>("#translation-menu")!;
+const translateCommand = document.querySelector<HTMLButtonElement>("#translate-command")!;
+const translationPopup = document.querySelector<HTMLElement>("#translation-popup")!;
+const translationClose = document.querySelector<HTMLButtonElement>("#translation-close")!;
 
 let documentId: string | undefined;
 let documentVersion = 0;
@@ -24,6 +29,8 @@ let modeBeforeExport: "preview" | "split" = "preview";
 let editorScrollFrame: number | undefined;
 let previewScrollFrame: number | undefined;
 let renderGeneration = 0;
+let translationRequestId: string | undefined;
+let translationSelection: { word: string; anchor: { left: number; top: number } } | undefined;
 
 document.documentElement.dataset.theme = theme;
 
@@ -63,6 +70,28 @@ const editor = new EditorView({
               top: editor.scrollDOM.scrollTop
             });
           });
+        },
+        contextmenu: (event, view) => {
+          const selection = view.state.selection.main;
+          const word = view.state.sliceDoc(selection.from, selection.to);
+          const pointerPosition = view.posAtCoords({ x: event.clientX, y: event.clientY });
+          if (selection.empty || pointerPosition === null
+              || pointerPosition < selection.from || pointerPosition > selection.to
+              || !isEligibleTranslationSelection(word)) {
+            hideTranslationMenu();
+            return false;
+          }
+          event.preventDefault();
+          hideTranslationPopup();
+          const end = view.coordsAtPos(selection.to);
+          translationSelection = {
+            word,
+            anchor: { left: end?.left ?? event.clientX, top: end?.bottom ?? event.clientY }
+          };
+          placeOverlay(translationMenu, event.clientX, event.clientY);
+          translationMenu.hidden = false;
+          translateCommand.focus();
+          return true;
         }
       })
     ]
@@ -122,6 +151,25 @@ async function handleMessage(message: AppMessage): Promise<void> {
     case "view.setMode":
       setMode((message.payload as { mode: "preview" | "split" }).mode);
       break;
+    case "translation.loading":
+    case "translation.completed":
+    case "translation.failed": {
+      if (message.requestId !== translationRequestId)
+        break;
+      const payload = message.payload as import("./translation").TranslationPayload
+        & { anchor: { left: number; top: number } };
+      const mapped = mapTranslationPayload(payload);
+      document.querySelector<HTMLElement>("#translation-word")!.textContent = mapped.heading;
+      document.querySelector<HTMLElement>("#translation-languages")!.textContent = mapped.languagePair;
+      document.querySelector<HTMLElement>("#translation-pos")!.textContent =
+        message.type === "translation.loading" ? "Looking up…" : mapped.partOfSpeech;
+      document.querySelector<HTMLElement>("#translation-result")!.textContent =
+        message.type === "translation.loading" ? "Translating selected word…" : mapped.result;
+      translationPopup.dataset.state = message.type.split(".")[1];
+      translationPopup.hidden = false;
+      placeOverlay(translationPopup, payload.anchor.left, payload.anchor.top);
+      break;
+    }
     case "preview.navigateFragment": {
       const fragment = (message.payload as { fragment: string }).fragment;
       document.getElementById(fragment)?.scrollIntoView({ block: "start" });
@@ -240,6 +288,11 @@ preview.addEventListener("scroll", () => {
 }, { passive: true });
 
 window.addEventListener("keydown", event => {
+  if (event.key === "Escape") {
+    hideTranslationMenu();
+    hideTranslationPopup();
+    return;
+  }
   if (!event.ctrlKey)
     return;
   const command = resolveApplicationShortcut(event.key, event.shiftKey);
@@ -248,6 +301,45 @@ window.addEventListener("keydown", event => {
   event.preventDefault();
   post("application.shortcut", documentId, documentVersion, { command });
 });
+
+translateCommand.addEventListener("click", () => {
+  if (!translationSelection)
+    return;
+  hideTranslationMenu();
+  translationRequestId = crypto.randomUUID();
+  post("translation.requested", documentId, documentVersion, {
+    word: translationSelection.word,
+    anchor: translationSelection.anchor
+  });
+});
+
+translationClose.addEventListener("click", hideTranslationPopup);
+document.addEventListener("pointerdown", event => {
+  const target = event.target as Node;
+  if (!translationMenu.contains(target))
+    hideTranslationMenu();
+  if (!translationPopup.hidden && !translationPopup.contains(target))
+    hideTranslationPopup();
+});
+
+function hideTranslationMenu(): void {
+  translationMenu.hidden = true;
+}
+
+function hideTranslationPopup(): void {
+  translationPopup.hidden = true;
+  translationRequestId = undefined;
+}
+
+function placeOverlay(element: HTMLElement, left: number, top: number): void {
+  element.style.left = `${Math.max(8, left)}px`;
+  element.style.top = `${Math.max(8, top + 6)}px`;
+  window.requestAnimationFrame(() => {
+    const bounds = element.getBoundingClientRect();
+    element.style.left = `${Math.max(8, Math.min(left, window.innerWidth - bounds.width - 8))}px`;
+    element.style.top = `${Math.max(8, Math.min(top + 6, window.innerHeight - bounds.height - 8))}px`;
+  });
+}
 
 let dragStart: { x: number; ratio: number } | undefined;
 divider.addEventListener("pointerdown", event => {

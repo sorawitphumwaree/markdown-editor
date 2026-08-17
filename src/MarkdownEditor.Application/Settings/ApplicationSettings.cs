@@ -12,5 +12,6 @@ public sealed class ApplicationSettings
     public double SplitRatio { get; set; } = 0.5;
     public double WindowWidth { get; set; } = 1280;
     public double WindowHeight { get; set; } = 800;
+    public string TranslationSourceLanguage { get; set; } = "en";
+    public string TranslationDestinationLanguage { get; set; } = "th";
 }
-

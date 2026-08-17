@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
@@ -8,6 +9,9 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using MarkdownEditor.Application.Messaging;
 using MarkdownEditor.Application.Paths;
+using MarkdownEditor.Application.Abstractions;
+using MarkdownEditor.Application.Settings;
+using MarkdownEditor.Application.Translation;
 using MarkdownEditor.App.ViewModels;
 using MarkdownEditor.Domain.Documents;
 using Microsoft.Extensions.Logging;
@@ -21,6 +25,9 @@ public partial class MainWindow : Window
     private readonly MainViewModel _viewModel;
     private readonly IWorkspacePathResolver _pathResolver;
     private readonly ILogger<MainWindow> _logger;
+    private readonly ISettingsStore _settingsStore;
+    private readonly ITranslationProvider _translationProvider;
+    private ApplicationSettings _settings = new();
     private bool _webReady;
     private bool _synchronizingViewToggle;
     private TaskCompletionSource<bool>? _exportReady;
@@ -32,11 +39,15 @@ public partial class MainWindow : Window
     public MainWindow(
         MainViewModel viewModel,
         IWorkspacePathResolver pathResolver,
+        ISettingsStore settingsStore,
+        ITranslationProvider translationProvider,
         ILogger<MainWindow> logger)
     {
         InitializeComponent();
         _viewModel = viewModel;
         _pathResolver = pathResolver;
+        _settingsStore = settingsStore;
+        _translationProvider = translationProvider;
         _logger = logger;
         DataContext = viewModel;
         Loaded += InitializeWebView;
@@ -46,6 +57,7 @@ public partial class MainWindow : Window
     {
         try
         {
+            _settings = await _settingsStore.LoadAsync();
             await WebView.EnsureCoreWebView2Async();
             var webRoot = Path.Combine(AppContext.BaseDirectory, "Web");
             WebView.CoreWebView2.SetVirtualHostNameToFolderMapping(
@@ -123,6 +135,9 @@ public partial class MainWindow : Window
             case "preview.linkClicked":
                 await HandleLinkAsync(message.Payload);
                 break;
+            case "translation.requested":
+                await HandleTranslationRequestAsync(message);
+                break;
             case "export.ready":
                 _exportReady?.TrySetResult(true);
                 break;
@@ -185,6 +200,72 @@ public partial class MainWindow : Window
             payload
         };
         WebView.CoreWebView2.PostWebMessageAsJson(JsonSerializer.Serialize(message, JsonDefaults.Options));
+        return Task.CompletedTask;
+    }
+
+    private async Task HandleTranslationRequestAsync(AppMessage message)
+    {
+        var requestId = message.RequestId;
+        if (requestId is null
+            || !message.Payload.TryGetProperty("word", out var wordProperty)
+            || !message.Payload.TryGetProperty("anchor", out var anchor))
+            return;
+        var word = wordProperty.GetString() ?? string.Empty;
+        await PostTranslationAsync("translation.loading", requestId, new
+        {
+            word,
+            sourceLanguage = _settings.TranslationSourceLanguage,
+            destinationLanguage = _settings.TranslationDestinationLanguage,
+            anchor
+        });
+        try
+        {
+            var result = await _translationProvider.TranslateWordAsync(
+                word,
+                _settings.TranslationSourceLanguage,
+                _settings.TranslationDestinationLanguage);
+            await PostTranslationAsync("translation.completed", requestId, new
+            {
+                word = result.SourceWord,
+                sourceLanguage = result.SourceLanguage,
+                destinationLanguage = result.DestinationLanguage,
+                partOfSpeech = result.PartOfSpeech,
+                translations = result.Translations,
+                anchor
+            });
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException
+                                   or InvalidOperationException or NotSupportedException
+                                   or ArgumentException)
+        {
+            _logger.LogWarning(ex, "Translation failed for selected word");
+            var error = ex is NotSupportedException or ArgumentException or InvalidOperationException
+                ? ex.Message
+                : "Translation is unavailable. Check your network connection and try again.";
+            await PostTranslationAsync("translation.failed", requestId, new
+            {
+                word,
+                sourceLanguage = _settings.TranslationSourceLanguage,
+                destinationLanguage = _settings.TranslationDestinationLanguage,
+                message = error,
+                anchor
+            });
+        }
+    }
+
+    private Task PostTranslationAsync(string type, string requestId, object payload)
+    {
+        var message = new
+        {
+            type,
+            protocolVersion = AppMessage.CurrentProtocolVersion,
+            requestId,
+            documentId = _viewModel.ActiveDocument?.Id,
+            version = _viewModel.ActiveDocument?.Model.Version,
+            payload
+        };
+        WebView.CoreWebView2.PostWebMessageAsJson(
+            JsonSerializer.Serialize(message, JsonDefaults.Options));
         return Task.CompletedTask;
     }
 
@@ -411,6 +492,19 @@ public partial class MainWindow : Window
 
     private void ShowAbout(object sender, RoutedEventArgs e) =>
         new AboutWindow { Owner = this }.ShowDialog();
+
+    private async void ShowTranslationSettings(object sender, RoutedEventArgs e)
+    {
+        var dialog = new TranslationSettingsWindow(
+            _settings.TranslationSourceLanguage,
+            _settings.TranslationDestinationLanguage) { Owner = this };
+        if (dialog.ShowDialog() != true)
+            return;
+        _settings.TranslationSourceLanguage = dialog.SourceLanguageCode;
+        _settings.TranslationDestinationLanguage = dialog.DestinationLanguageCode;
+        await _settingsStore.SaveAsync(_settings);
+        _viewModel.Status = "Translation language settings saved";
+    }
 
     private async void OnPreviewKeyDown(object sender, KeyEventArgs e)
     {

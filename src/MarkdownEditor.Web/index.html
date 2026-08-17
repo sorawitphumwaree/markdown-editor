@@ -11,7 +11,17 @@
       <div id="divider" role="separator"></div>
       <article id="preview" aria-label="Rendered preview"></article>
     </main>
+    <div id="translation-menu" role="menu" hidden>
+      <button id="translate-command" role="menuitem">Translate</button>
+    </div>
+    <section id="translation-popup" role="status" aria-live="polite" hidden>
+      <button id="translation-close" aria-label="Close translation">×</button>
+      <strong id="translation-word"></strong>
+      <span id="translation-languages"></span>
+      <span id="translation-pos"></span>
+      <div id="translation-result"></div>
+      <small>Online lookup: selected word only</small>
+    </section>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
-

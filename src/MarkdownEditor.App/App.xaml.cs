@@ -9,6 +9,8 @@ using MarkdownEditor.Infrastructure.FileSystem;
 using MarkdownEditor.Infrastructure.Paths;
 using MarkdownEditor.Infrastructure.Persistence;
 using MarkdownEditor.Infrastructure.Recovery;
+using MarkdownEditor.Application.Translation;
+using MarkdownEditor.Infrastructure.Translation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
@@ -49,6 +51,8 @@ public partial class App : System.Windows.Application
         services.AddSingleton<IWorkspacePathResolver, WorkspacePathResolver>();
         services.AddSingleton<ISettingsStore>(_ => new JsonSettingsStore(dataDirectory));
         services.AddSingleton<IRecoveryStore>(_ => new JsonRecoveryStore(dataDirectory));
+        services.AddHttpClient<ITranslationProvider, MyMemoryTranslationProvider>(client =>
+            client.Timeout = TimeSpan.FromSeconds(10));
         services.AddSingleton<DocumentWorkflow>();
         services.AddSingleton<MainViewModel>();
         services.AddSingleton<MainWindow>();

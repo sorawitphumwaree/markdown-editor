@@ -157,6 +157,24 @@ intend to replace the current tab content.
 
 ## Troubleshooting
 
+## Translate an English word to Thai
+
+Translation is available in Split view, where the source editor is visible.
+
+1. Double-click an English word to select it.
+2. Right-click the selected word and choose **Translate**.
+3. Read the Thai translation and part of speech in the popup below the word.
+4. Close the popup with its **X**, Escape, or a click elsewhere.
+
+Only one word can be translated at a time, and translation never replaces or
+otherwise changes the document. Choose **Settings > Translation** to configure
+the language pair. The current release supports English to Thai; other
+configurations show a non-blocking unsupported-pair message.
+
+Translation is an online feature. It sends only the selected word—not the
+surrounding sentence or document—to MyMemory for translation and Dictionary API
+for optional English part-of-speech information.
+
 ### The application reports that WebView2 could not start
 
 Install the Microsoft Edge WebView2 Evergreen Runtime and restart the

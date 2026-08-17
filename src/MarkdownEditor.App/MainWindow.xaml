@@ -99,6 +99,9 @@
         <Separator/>
         <MenuItem Header="E_xit" Click="Exit"/>
       </MenuItem>
+      <MenuItem Header="_Settings">
+        <MenuItem Header="_Translation…" Click="ShowTranslationSettings"/>
+      </MenuItem>
       <MenuItem Header="_Help">
         <MenuItem Header="_User Manual"
                   Tag="https://github.com/sorawitphumwaree/markdown-editor/blob/main/docs/user-manual.md"
