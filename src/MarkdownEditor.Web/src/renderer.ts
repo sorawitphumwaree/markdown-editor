@@ -86,6 +86,7 @@ export async function renderMarkdown(
   state = "rendering-mermaid";
   mermaid.initialize({
     startOnLoad: false,
+    suppressErrorRendering: true,
     securityLevel: "strict",
     htmlLabels: false,
     theme: theme === "dark" ? "dark" : "base",

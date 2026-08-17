@@ -62,6 +62,30 @@ async function loadMarkdown(page: Page, source: string): Promise<void> {
   )).toBe(true);
 }
 
+async function replaceMarkdown(page: Page, source: string, version: number): Promise<void> {
+  await page.evaluate(({ markdown, documentVersion }) => {
+    window.__sendHostMessage({
+      type: "document.load",
+      protocolVersion: 1,
+      documentId: "browser-test",
+      version: documentVersion,
+      payload: {
+        content: markdown,
+        cursorLine: 1,
+        viewMode: "preview",
+        editorScroll: 0,
+        previewScroll: 0
+      }
+    });
+  }, { markdown: source, documentVersion: version });
+
+  await expect.poll(() => page.evaluate(documentVersion =>
+    window.__hostMessages.some((message: any) =>
+      message.type === "preview.renderCompleted" && message.version === documentVersion
+    ), version
+  )).toBe(true);
+}
+
 const fixturePath = fileURLToPath(new URL(
   "../../../../docs/test-cases/mermaid-rendering.md",
   import.meta.url
@@ -105,6 +129,47 @@ const fixtures = [...fixtureSource.matchAll(
 test("manual fixture covers every supported Mermaid family", () => {
   expect(fixtures).toHaveLength(expectedLabels.length);
   expect(fixtures.every(fixture => fixture.expectedLabel)).toBe(true);
+});
+
+test("repeated invalid Mermaid renders keep only the latest block error", async ({ page }) => {
+  await loadMarkdown(page, "```mermaid\nflowchart TD\nA[First\n```");
+  await expect(page.locator("#preview .render-error")).toHaveCount(1);
+  await expect(page.locator('body > div[id^="dmermaid-"]')).toHaveCount(0);
+
+  await replaceMarkdown(page, "```mermaid\nflowchart TD\nB[Second\n```", 2);
+
+  await expect(page.locator("#preview .render-error")).toHaveCount(1);
+  await expect(page.locator("#preview .render-error")).toContainText("Second");
+  await expect(page.locator('body > div[id^="dmermaid-"]')).toHaveCount(0);
+
+  await page.evaluate(() => {
+    window.__sendHostMessage({
+      type: "export.prepare",
+      protocolVersion: 1,
+      documentId: "browser-test",
+      version: 2,
+      payload: {}
+    });
+  });
+  await expect.poll(() => page.evaluate(() =>
+    window.__hostMessages.some((message: any) =>
+      message.type === "export.ready" && message.version === 2
+    )
+  )).toBe(true);
+  await expect(page.locator("#preview .render-error")).toHaveCount(1);
+  await expect(page.locator('body > div[id^="dmermaid-"]')).toHaveCount(0);
+});
+
+test("a valid Mermaid render clears the preceding block error", async ({ page }) => {
+  await loadMarkdown(page, "```mermaid\nflowchart TD\nA[Broken\n```");
+  await expect(page.locator("#preview .render-error")).toHaveCount(1);
+
+  await replaceMarkdown(page, "```mermaid\nflowchart TD\nA[Valid] --> B[Done]\n```", 2);
+
+  await expect(page.locator("#preview .render-error")).toHaveCount(0);
+  await expect(page.locator("#preview .mermaid-diagram")).toHaveCount(1);
+  await expect(page.locator("#preview .mermaid-diagram")).toContainText("Valid");
+  await expect(page.locator('body > div[id^="dmermaid-"]')).toHaveCount(0);
 });
 
 for (const fixture of fixtures) {
