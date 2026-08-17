@@ -82,15 +82,14 @@ const editor = new EditorView({
             return false;
           }
           event.preventDefault();
-          hideTranslationPopup();
           const end = view.coordsAtPos(selection.to);
-          translationSelection = {
+          showTranslationMenu(
             word,
-            anchor: { left: end?.left ?? event.clientX, top: end?.bottom ?? event.clientY }
-          };
-          placeOverlay(translationMenu, event.clientX, event.clientY);
-          translationMenu.hidden = false;
-          translateCommand.focus();
+            event.clientX,
+            event.clientY,
+            end?.left ?? event.clientX,
+            end?.bottom ?? event.clientY
+          );
           return true;
         }
       })
@@ -278,6 +277,34 @@ preview.addEventListener("click", event => {
   editor.focus();
 });
 
+preview.addEventListener("contextmenu", event => {
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount !== 1)
+    return;
+  const word = selection.toString().trim();
+  const range = selection.getRangeAt(0);
+  const selectionNode = range.commonAncestorContainer.nodeType === Node.TEXT_NODE
+    ? range.commonAncestorContainer.parentNode
+    : range.commonAncestorContainer;
+  const rects = [...range.getClientRects()];
+  const pointerIsWithinSelection = rects.some(rect =>
+    event.clientX >= rect.left && event.clientX <= rect.right
+    && event.clientY >= rect.top && event.clientY <= rect.bottom);
+  if (!selectionNode || !preview.contains(selectionNode)
+      || !pointerIsWithinSelection || !isEligibleTranslationSelection(word))
+    return;
+
+  event.preventDefault();
+  const anchor = rects.at(-1);
+  showTranslationMenu(
+    word,
+    event.clientX,
+    event.clientY,
+    anchor?.left ?? event.clientX,
+    anchor?.bottom ?? event.clientY
+  );
+});
+
 preview.addEventListener("scroll", () => {
   window.cancelAnimationFrame(previewScrollFrame ?? 0);
   previewScrollFrame = window.requestAnimationFrame(() => {
@@ -310,7 +337,7 @@ translateCommand.addEventListener("click", () => {
   post("translation.requested", documentId, documentVersion, {
     word: translationSelection.word,
     anchor: translationSelection.anchor
-  });
+  }, translationRequestId);
 });
 
 translationClose.addEventListener("click", hideTranslationPopup);
@@ -329,6 +356,20 @@ function hideTranslationMenu(): void {
 function hideTranslationPopup(): void {
   translationPopup.hidden = true;
   translationRequestId = undefined;
+}
+
+function showTranslationMenu(
+  word: string,
+  menuLeft: number,
+  menuTop: number,
+  anchorLeft: number,
+  anchorTop: number
+): void {
+  hideTranslationPopup();
+  translationSelection = { word, anchor: { left: anchorLeft, top: anchorTop } };
+  placeOverlay(translationMenu, menuLeft, menuTop);
+  translationMenu.hidden = false;
+  translateCommand.focus();
 }
 
 function placeOverlay(element: HTMLElement, left: number, top: number): void {

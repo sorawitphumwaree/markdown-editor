@@ -6,11 +6,13 @@ export function post<T>(
   type: string,
   documentId: string | undefined,
   version: number | undefined,
-  payload: T
+  payload: T,
+  requestId?: string
 ): void {
   window.chrome?.webview?.postMessage({
     type,
     protocolVersion,
+    requestId,
     documentId,
     version,
     payload
@@ -24,4 +26,3 @@ export function listen(handler: (message: AppMessage) => void): void {
       handler(message);
   });
 }
-

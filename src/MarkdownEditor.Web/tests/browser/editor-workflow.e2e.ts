@@ -29,14 +29,21 @@ async function startHost(page: Page): Promise<void> {
   await expect.poll(() => messages(page, "web.ready")).toHaveLength(1);
 }
 
-async function send(page: Page, type: string, payload: unknown, version = 1): Promise<void> {
-  await page.evaluate(({ type, payload, version }) => window.__sendHostMessage({
+async function send(
+  page: Page,
+  type: string,
+  payload: unknown,
+  version = 1,
+  requestId?: string
+): Promise<void> {
+  await page.evaluate(({ type, payload, version, requestId }) => window.__sendHostMessage({
     type,
     protocolVersion: 1,
+    requestId,
     documentId: "workflow-test",
     version,
     payload
-  }), { type, payload, version });
+  }), { type, payload, version, requestId });
 }
 
 async function load(page: Page, content: string, mode: "preview" | "split" = "split"): Promise<void> {
@@ -116,4 +123,57 @@ test("messages with an incompatible protocol version are ignored", async ({ page
 
   await expect(page.locator(".cm-content")).toHaveText("");
   await expect(messages(page, "preview.renderCompleted")).resolves.toHaveLength(0);
+});
+
+test("editor translation request includes correlation id and displays the result", async ({ page }) => {
+  await load(page, "factory output", "split");
+  const editor = page.locator(".cm-content");
+  await editor.dblclick({ position: { x: 28, y: 10 } });
+  await editor.click({ button: "right", position: { x: 28, y: 10 } });
+  await page.locator("#translate-command").click();
+
+  await expect.poll(async () =>
+    (await messages(page, "translation.requested")).at(-1)
+  ).not.toBeUndefined();
+  const sent = (await messages(page, "translation.requested")).at(-1);
+  expect(sent.requestId).toBeTruthy();
+  expect(sent.payload.word).toBe("factory");
+
+  await send(page, "translation.completed", {
+    word: "factory",
+    sourceLanguage: "en",
+    destinationLanguage: "th",
+    partOfSpeech: "noun",
+    translations: ["โรงงาน"],
+    anchor: sent.payload.anchor
+  }, 1, sent.requestId);
+
+  await expect(page.locator("#translation-popup")).toBeVisible();
+  await expect(page.locator("#translation-result")).toHaveText("โรงงาน");
+});
+
+test("preview mode translates a selected rendered word and dismisses with Escape", async ({ page }) => {
+  await load(page, "Translate **factory** output.", "preview");
+  const renderedWord = page.locator("#preview strong");
+  await renderedWord.dblclick();
+  await renderedWord.click({ button: "right" });
+  await expect(page.locator("#translation-menu")).toBeVisible();
+  await page.locator("#translate-command").click();
+
+  await expect.poll(async () =>
+    (await messages(page, "translation.requested")).at(-1)
+  ).not.toBeUndefined();
+  const request = (await messages(page, "translation.requested")).at(-1);
+  expect(request.requestId).toBeTruthy();
+  expect(request.payload.word).toBe("factory");
+  await send(page, "translation.loading", {
+    word: "factory",
+    sourceLanguage: "en",
+    destinationLanguage: "th",
+    anchor: request.payload.anchor
+  }, 1, request.requestId);
+  await expect(page.locator("#translation-popup")).toBeVisible();
+
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#translation-popup")).toBeHidden();
 });
