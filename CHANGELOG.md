@@ -4,6 +4,15 @@ All notable user-facing changes to Markdown Editor are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.1.1] - 2026-08-17
+
+### Fixed
+
+- Repeated Mermaid syntax errors no longer accumulate hidden error diagrams in
+  the preview or exported PDFs while a diagram is being edited.
+- Correcting invalid Mermaid syntax now replaces the current error with the
+  rendered diagram without retaining stale error output.
+
 ## [1.1.0] - 2026-08-12
 
 ### Added
@@ -57,6 +66,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Mermaid diagrams render reliably on the initial document load.
 - Portable packages include the complete WebView frontend.
 
+[1.1.1]: https://github.com/sorawitphumwaree/markdown-editor/releases/tag/v1.1.1
 [1.1.0]: https://github.com/sorawitphumwaree/markdown-editor/releases/tag/v1.1.0
 [1.0.1]: https://github.com/sorawitphumwaree/markdown-editor/releases/tag/v1.0.1
 [1.0.0]: https://github.com/sorawitphumwaree/markdown-editor/releases/tag/v1.0.0
