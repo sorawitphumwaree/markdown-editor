@@ -4,6 +4,18 @@ All notable user-facing changes to Markdown Editor are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Added
+
+- Selected words in rendered Preview content now expose the same contextual
+  **Translate** action as words selected in the Split-view editor.
+
+### Fixed
+
+- Translation requests now carry their correlation identifier across the
+  WebView bridge, so choosing **Translate** reliably opens the result popup.
+
 ## [1.2.0] - 2026-08-17
 
 ### Added

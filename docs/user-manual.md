@@ -159,10 +159,12 @@ intend to replace the current tab content.
 
 ## Translate an English word to Thai
 
-Translation is available in Split view, where the source editor is visible.
+Translation is available for selected words in both rendered Preview content
+and the source editor shown in Split view.
 
 1. Double-click an English word to select it.
-2. Right-click the selected word and choose **Translate**.
+2. Right-click the selected word and choose **Translate**. This works in either
+   the rendered preview or source editor.
 3. Read the Thai translation and part of speech in the popup below the word.
 4. Close the popup with its **X**, Escape, or a click elsewhere.
 
