@@ -31,6 +31,8 @@ embedded WebView2 editing/rendering surface.
 - Use a charcoal-and-violet visual theme derived from the application logo.
 - Open a user manual, release notes, Markdown references, and an expanded About
   surface with version, feature, project, and license information.
+- Translate a selected English word to Thai from the editor context menu without
+  changing the document.
 
 ## Architecture
 

@@ -98,3 +98,48 @@ body { background: var(--background); color: var(--foreground); }
   height: auto;
   overflow: visible;
 }
+
+#translation-menu, #translation-popup {
+  position: fixed;
+  z-index: 1000;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: white;
+  color: var(--foreground);
+  box-shadow: 0 8px 24px rgb(23 24 30 / 18%);
+  font: 14px/1.45 "Segoe UI", "Leelawadee UI", sans-serif;
+}
+
+#translation-menu[hidden], #translation-popup[hidden] { display: none; }
+#translation-menu { padding: 4px; }
+#translate-command {
+  min-width: 130px;
+  padding: 7px 14px;
+  border: 0;
+  border-radius: 4px;
+  background: white;
+  text-align: left;
+}
+#translate-command:hover, #translate-command:focus { background: var(--accent-hover); outline: none; }
+
+#translation-popup {
+  width: min(320px, calc(100vw - 16px));
+  padding: 14px 36px 13px 15px;
+}
+#translation-popup > strong, #translation-popup > span { display: block; }
+#translation-word { font-size: 17px; }
+#translation-languages, #translation-pos, #translation-popup small { color: var(--secondary); }
+#translation-result { margin: 9px 0; font-size: 18px; color: #3d287e; }
+#translation-popup[data-state="failed"] #translation-result { color: #b42318; font-size: 14px; }
+#translation-close {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 25px;
+  height: 25px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  font-size: 19px;
+}
+#translation-close:hover { background: var(--accent-hover); }

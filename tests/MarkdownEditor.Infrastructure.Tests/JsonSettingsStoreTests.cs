@@ -26,7 +26,9 @@ public sealed class JsonSettingsStoreTests : TemporaryDirectoryTest
             Theme = "light",
             RestorePreviousSession = false,
             LastWorkspace = @"C:\docs",
-            SplitRatio = 0.7
+            SplitRatio = 0.7,
+            TranslationSourceLanguage = "th",
+            TranslationDestinationLanguage = "en"
         };
 
         await store.SaveAsync(expected);
