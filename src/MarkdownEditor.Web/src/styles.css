@@ -71,7 +71,47 @@ body { background: var(--background); color: var(--foreground); }
 #preview pre { overflow: auto; padding: 14px; border-radius: 6px; background: var(--muted); }
 .source-active { outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent); }
 .render-error { color: #b42318; border: 1px solid #f04438; white-space: pre-wrap; }
-.mermaid-diagram { overflow: auto; text-align: center; }
+.mermaid-diagram {
+  position: relative;
+  max-height: min(70vh, 720px);
+  overflow: auto;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  text-align: center;
+  overscroll-behavior: contain;
+}
+.mermaid-diagram:focus { border-color: var(--accent-light); outline: none; }
+.mermaid-diagram.is-zoomed { cursor: grab; user-select: none; }
+.mermaid-diagram.is-panning { cursor: grabbing; }
+.mermaid-toolbar {
+  position: sticky;
+  z-index: 2;
+  top: 8px;
+  left: 100%;
+  display: flex;
+  width: max-content;
+  margin: 8px 8px -40px auto;
+  padding: 4px;
+  gap: 4px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: rgb(255 255 255 / 94%);
+  box-shadow: 0 2px 8px rgb(23 24 30 / 14%);
+}
+.mermaid-toolbar button {
+  min-width: 30px;
+  height: 30px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--foreground);
+  font: 600 13px "Segoe UI", sans-serif;
+}
+.mermaid-toolbar button:hover:not(:disabled),
+.mermaid-toolbar button:focus-visible { background: var(--accent-hover); outline: none; }
+.mermaid-toolbar button:disabled { color: #aaa; }
+.mermaid-zoom-label { min-width: 44px; align-self: center; color: var(--secondary); font-size: 12px; }
 
 @media print {
   html, body { width: auto; height: auto; overflow: visible; }
@@ -82,6 +122,9 @@ body { background: var(--background); color: var(--foreground); }
   #preview pre, #preview table, #preview .mermaid-diagram {
     break-inside: avoid;
   }
+  .mermaid-toolbar { display: none; }
+  .mermaid-diagram { max-height: none; border: 0; }
+  .mermaid-diagram > svg { width: 100% !important; max-width: 100% !important; height: auto !important; }
 }
 
 :root.exporting,
