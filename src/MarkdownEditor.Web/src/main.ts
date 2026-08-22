@@ -262,6 +262,8 @@ function restoreViewports(editorTop: number, previewTop: number): void {
 
 preview.addEventListener("click", event => {
   const target = event.target as HTMLElement;
+  if (target.closest(".mermaid-toolbar"))
+    return;
   const link = target.closest<HTMLAnchorElement>("a[href]");
   if (link) {
     event.preventDefault();

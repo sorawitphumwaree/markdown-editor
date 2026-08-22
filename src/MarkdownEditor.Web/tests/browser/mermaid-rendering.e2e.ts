@@ -172,6 +172,57 @@ test("a valid Mermaid render clears the preceding block error", async ({ page })
   await expect(page.locator('body > div[id^="dmermaid-"]')).toHaveCount(0);
 });
 
+test("Mermaid zoom, pan, and reset stay scoped to one diagram", async ({ page }) => {
+  await loadMarkdown(page, [
+    "```mermaid",
+    "flowchart LR",
+    "A[Start] --> B[Review] --> C[Build] --> D[Test] --> E[Ship]",
+    "A --> F[Plan] --> G[Design] --> H[Implement] --> I[Verify] --> E",
+    "A --> J[Research] --> K[Prototype] --> L[Measure] --> M[Refine] --> E",
+    "```",
+    "",
+    "```mermaid",
+    "flowchart TD",
+    "X[Independent] --> Y[Diagram]",
+    "```"
+  ].join("\n"));
+
+  const diagrams = page.locator(".mermaid-diagram");
+  const first = diagrams.nth(0);
+  const second = diagrams.nth(1);
+  await first.getByRole("button", { name: "Zoom in" }).click();
+  await first.getByRole("button", { name: "Zoom in" }).click();
+  await first.getByRole("button", { name: "Zoom in" }).click();
+  await first.getByRole("button", { name: "Zoom in" }).click();
+
+  await expect(first.locator(".mermaid-zoom-label")).toHaveText("200%");
+  await expect(second.locator(".mermaid-zoom-label")).toHaveText("100%");
+  const beforePan = await first.evaluate(element => ({
+    left: element.scrollLeft,
+    top: element.scrollTop,
+    width: element.scrollWidth
+  }));
+  expect(beforePan.width).toBeGreaterThan(await first.evaluate(element => element.clientWidth));
+
+  const bounds = await first.boundingBox();
+  expect(bounds).not.toBeNull();
+  await page.mouse.move(bounds!.x + bounds!.width * 0.75, bounds!.y + bounds!.height * 0.7);
+  await page.mouse.down();
+  await page.mouse.move(bounds!.x + bounds!.width * 0.35, bounds!.y + bounds!.height * 0.35);
+  await page.mouse.up();
+  const afterPan = await first.evaluate(element => ({
+    left: element.scrollLeft,
+    top: element.scrollTop
+  }));
+  expect(afterPan.left).toBeGreaterThan(beforePan.left);
+  expect(afterPan.top).toBeGreaterThanOrEqual(beforePan.top);
+
+  await first.getByRole("button", { name: "Reset zoom and pan" }).click();
+  await expect(first.locator(".mermaid-zoom-label")).toHaveText("100%");
+  await expect.poll(() => first.evaluate(element => [element.scrollLeft, element.scrollTop]))
+    .toEqual([0, 0]);
+});
+
 for (const fixture of fixtures) {
   test(`${fixture.number} ${fixture.name} renders sanitized labeled SVG`, async ({ page }) => {
     await loadMarkdown(page, `\`\`\`mermaid\n${fixture.source}\n\`\`\``);

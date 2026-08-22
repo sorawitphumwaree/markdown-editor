@@ -7,6 +7,7 @@ import mermaid from "mermaid";
 import { createHighlighter, type Highlighter } from "shiki";
 import type Token from "markdown-it/lib/token.mjs";
 import type { RenderState } from "./types";
+import { initializeMermaidInteractions } from "./mermaid-interaction";
 
 let state: RenderState = "idle";
 let highlighterPromise: Promise<Highlighter> | undefined;
@@ -155,6 +156,8 @@ export async function renderMarkdown(
 
   if (!commitRenderedContent(preview, staging, isCurrent))
     return version;
+
+  initializeMermaidInteractions(preview);
 
   state = "loading-assets";
   await waitForImages(preview);

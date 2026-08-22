@@ -198,6 +198,14 @@ Check the diagram syntax against the
 [Mermaid documentation](https://mermaid.js.org/intro/). Errors are isolated to
 the affected diagram.
 
+### A Mermaid diagram is too small to inspect
+
+Use the controls in the diagram's upper-right corner to zoom in or out. Once
+enlarged, drag the diagram horizontally or vertically to inspect it. Choose
+**Reset** to restore its original scale and position. You can also hold Ctrl and
+use the mouse wheel over a diagram to zoom; an ordinary wheel gesture continues
+to scroll the Preview normally.
+
 ## More information
 
 - [Project README](../README.md)
