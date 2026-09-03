@@ -4,7 +4,7 @@ All notable user-facing changes to Markdown Editor are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [1.3.1] - 2026-09-03
 
 ### Fixed
 
@@ -103,6 +103,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Mermaid diagrams render reliably on the initial document load.
 - Portable packages include the complete WebView frontend.
 
+[1.3.1]: https://github.com/sorawitphumwaree/markdown-editor/releases/tag/v1.3.1
 [1.3.0]: https://github.com/sorawitphumwaree/markdown-editor/releases/tag/v1.3.0
 [1.2.1]: https://github.com/sorawitphumwaree/markdown-editor/releases/tag/v1.2.1
 [1.2.0]: https://github.com/sorawitphumwaree/markdown-editor/releases/tag/v1.2.0
