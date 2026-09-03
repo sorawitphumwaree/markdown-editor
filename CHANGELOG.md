@@ -4,6 +4,13 @@ All notable user-facing changes to Markdown Editor are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Fixed
+
+- English-to-Thai translation results remain available when the optional
+  part-of-speech lookup times out or returns an unusable response.
+
 ## [1.3.0] - 2026-08-22
 
 ### Added
