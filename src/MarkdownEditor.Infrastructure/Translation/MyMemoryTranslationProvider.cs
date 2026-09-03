@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using MarkdownEditor.Application.Translation;
 
@@ -32,7 +33,10 @@ public sealed class MyMemoryTranslationProvider(HttpClient httpClient) : ITransl
         {
             response = await translationTask;
             try { dictionary = await dictionaryTask; }
-            catch (HttpRequestException) { }
+            catch (Exception ex) when (ex is HttpRequestException
+                                       or TaskCanceledException
+                                       or JsonException
+                                       or NotSupportedException) { }
         }
         catch
         {

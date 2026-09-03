@@ -36,6 +36,28 @@ public sealed class MyMemoryTranslationProviderTests
             .WithMessage("*English to Thai*");
     }
 
+    [Fact]
+    public async Task TranslateWordAsync_WhenOptionalDictionaryTimesOut_ReturnsTranslationWithoutPartOfSpeech()
+    {
+        using var client = new HttpClient(new AsyncStubHandler(request =>
+            request.RequestUri!.Host.Contains("dictionaryapi", StringComparison.Ordinal)
+                ? Task.FromException<HttpResponseMessage>(new TaskCanceledException("Dictionary lookup timed out."))
+                : Task.FromResult(JsonResponse(
+                    """{"responseData":{"translatedText":"สุนัข"},"matches":[]}"""))));
+        var provider = new MyMemoryTranslationProvider(client);
+
+        var result = await provider.TranslateWordAsync("dog", "en", "th");
+
+        result.Translations.Should().Equal("สุนัข");
+        result.PartOfSpeech.Should().BeNull();
+    }
+
+    private static HttpResponseMessage JsonResponse(string content) =>
+        new(HttpStatusCode.OK)
+        {
+            Content = new StringContent(content, Encoding.UTF8, "application/json")
+        };
+
     private sealed class StubHandler(Func<HttpRequestMessage, string> response) : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(
@@ -45,5 +67,13 @@ public sealed class MyMemoryTranslationProviderTests
             {
                 Content = new StringContent(response(request), Encoding.UTF8, "application/json")
             });
+    }
+
+    private sealed class AsyncStubHandler(
+        Func<HttpRequestMessage, Task<HttpResponseMessage>> response) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken) => response(request);
     }
 }
