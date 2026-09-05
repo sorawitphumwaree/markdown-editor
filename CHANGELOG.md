@@ -4,6 +4,15 @@ All notable user-facing changes to Markdown Editor are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.3.3] - 2026-09-05
+
+### Fixed
+
+- Dense Mermaid state diagrams now give long transition labels more layout
+  space and move colliding labels clear of other labels and state nodes.
+- Cyclic state diagrams retain Mermaid's stable Dagre renderer while benefiting
+  from the corrected label layout in Preview, Split view, and exports.
+
 ## [1.3.2] - 2026-09-05
 
 ### Fixed
@@ -112,6 +121,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Mermaid diagrams render reliably on the initial document load.
 - Portable packages include the complete WebView frontend.
 
+[1.3.3]: https://github.com/sorawitphumwaree/markdown-editor/releases/tag/v1.3.3
 [1.3.2]: https://github.com/sorawitphumwaree/markdown-editor/releases/tag/v1.3.2
 [1.3.1]: https://github.com/sorawitphumwaree/markdown-editor/releases/tag/v1.3.1
 [1.3.0]: https://github.com/sorawitphumwaree/markdown-editor/releases/tag/v1.3.0
