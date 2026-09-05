@@ -4,6 +4,7 @@ import footnote from "markdown-it-footnote";
 import taskLists from "markdown-it-task-lists";
 import DOMPurify from "dompurify";
 import mermaid from "mermaid";
+import elkLayouts from "@mermaid-js/layout-elk";
 import { createHighlighter, type Highlighter } from "shiki";
 import type Token from "markdown-it/lib/token.mjs";
 import type { RenderState } from "./types";
@@ -12,6 +13,8 @@ import { initializeMermaidInteractions } from "./mermaid-interaction";
 let state: RenderState = "idle";
 let highlighterPromise: Promise<Highlighter> | undefined;
 let renderSequence = 0;
+
+mermaid.registerLayoutLoaders(elkLayouts);
 
 const markdown = new MarkdownIt({
   html: true,
@@ -90,6 +93,13 @@ export async function renderMarkdown(
     suppressErrorRendering: true,
     securityLevel: "strict",
     htmlLabels: false,
+    elk: {
+      mergeEdges: false,
+      nodePlacementStrategy: "NETWORK_SIMPLEX"
+    },
+    flowchart: {
+      defaultRenderer: "elk"
+    },
     theme: theme === "dark" ? "dark" : "base",
     themeVariables: theme === "dark" ? undefined : {
       primaryColor: "#eee9fc",
@@ -291,7 +301,10 @@ function annotateFlowchart(
       setSingleSourceLine(node, sourceEntry[1]);
   }
 
-  const renderedEdges = [...container.querySelectorAll<HTMLElement>(".edgePath")];
+  const edgeGroups = [...container.querySelectorAll<HTMLElement>(".edgePath")];
+  const renderedEdges = edgeGroups.length === edgeLines.length
+    ? edgeGroups
+    : [...container.querySelectorAll<HTMLElement>("path.flowchart-link")];
   const renderedLabels = [...container.querySelectorAll<HTMLElement>(".edgeLabel")];
   edgeLines.forEach((line, index) => {
     if (renderedEdges[index])

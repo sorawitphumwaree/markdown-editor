@@ -1,8 +1,14 @@
 # Mermaid diagram support
 
-Markdown Editor 1.0.1 uses Mermaid 11.16.0 and renders supported diagrams with
+Markdown Editor uses Mermaid 11.16.0 and renders supported diagrams with
 pure SVG labels. Pure SVG labels survive the application's strict sanitization
 pipeline and remain readable in WebView2 and PDF output.
+
+Flowcharts use Mermaid's optional ELK layered layout with independent edge
+routes and network-simplex node placement. This layout is selected for dense
+connected-node diagrams because it reduces avoidable curved crossings and keeps
+edge labels separate. Other diagram families retain their standard Mermaid
+renderer.
 
 The support baseline is versioned with the Mermaid dependency. Run the browser
 rendering suite and manually open
@@ -64,5 +70,7 @@ For every supported fixture, the Edge browser suite checks that:
 - the SVG has finite, non-zero rendered dimensions and a finite `viewBox`;
 - visible drawing primitives remain after sanitization.
 
-The manual Windows acceptance pass additionally checks Preview and Split modes,
-scrolling, light-theme contrast, and PDF export clipping.
+The suite also exercises a dense labelled flowchart and checks orthogonal edge
+routing, label-to-label and label-to-node collisions, source-line mappings,
+Split mode, and export preparation. The manual Windows acceptance pass
+additionally checks scrolling, light-theme contrast, and PDF export clipping.
