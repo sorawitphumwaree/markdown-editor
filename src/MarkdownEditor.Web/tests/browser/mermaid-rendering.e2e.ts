@@ -223,6 +223,92 @@ test("Mermaid zoom, pan, and reset stay scoped to one diagram", async ({ page })
     .toEqual([0, 0]);
 });
 
+test("dense labelled flowcharts use readable non-overlapping ELK routing", async ({ page }) => {
+  await loadMarkdown(page, [
+    "```mermaid",
+    "flowchart LR",
+    "Request[Incoming request] -->|validate| Validate{Valid?}",
+    "Validate -->|yes| Authorize{Authorized?}",
+    "Validate -->|no| Reject[Reject request]",
+    "Authorize -->|yes| Process[Process request]",
+    "Authorize -->|no| Reject",
+    "Process -->|cached| Cache[(Result cache)]",
+    "Process -->|complete| Return[Return response]",
+    "Cache -->|hit| Return",
+    "Cache -->|miss| Process",
+    "Reject -->|error response| Return",
+    "```"
+  ].join("\n"));
+
+  const diagram = page.locator(".mermaid-diagram");
+  const geometry = await diagram.evaluate(element => {
+    const rectangles = (selector: string) => [...element.querySelectorAll<SVGGraphicsElement>(selector)]
+      .map(item => item.getBoundingClientRect())
+      .filter(rect => rect.width > 0 && rect.height > 0);
+    const overlaps = (first: DOMRect, second: DOMRect) =>
+      first.left < second.right - 1
+      && first.right > second.left + 1
+      && first.top < second.bottom - 1
+      && first.bottom > second.top + 1;
+    const nodes = rectangles("g.node");
+    const labels = rectangles("g.edgeLabel");
+    const labelCollisions = labels.flatMap((label, index) =>
+      labels.slice(index + 1).filter(other => overlaps(label, other)));
+    const nodeLabelCollisions = labels.flatMap(label =>
+      nodes.filter(node => overlaps(label, node)));
+    const edgePaths = [...element.querySelectorAll<SVGPathElement>("path.flowchart-link")];
+
+    return {
+      nodeCount: nodes.length,
+      labelCount: labels.length,
+      labelCollisionCount: labelCollisions.length,
+      nodeLabelCollisionCount: nodeLabelCollisions.length,
+      cubicEdgeCount: edgePaths.filter(path => /\bC\s/i.test(path.getAttribute("d") ?? "")).length,
+      mappedEdgeCount: element.querySelectorAll(
+        ".edgePath[data-source-start], path.flowchart-link[data-source-start]"
+      ).length,
+      mappedLabelCount: element.querySelectorAll(".edgeLabel[data-source-start]").length
+    };
+  });
+
+  expect(geometry).toEqual({
+    nodeCount: 7,
+    labelCount: 10,
+    labelCollisionCount: 0,
+    nodeLabelCollisionCount: 0,
+    cubicEdgeCount: 0,
+    mappedEdgeCount: 10,
+    mappedLabelCount: 10
+  });
+
+  await page.evaluate(() => {
+    window.__sendHostMessage({
+      type: "view.setMode",
+      protocolVersion: 1,
+      documentId: "browser-test",
+      version: 1,
+      payload: { mode: "split" }
+    });
+  });
+  await expect(diagram).toBeVisible();
+
+  await page.evaluate(() => {
+    window.__sendHostMessage({
+      type: "export.prepare",
+      protocolVersion: 1,
+      documentId: "browser-test",
+      version: 1,
+      payload: {}
+    });
+  });
+  await expect.poll(() => page.evaluate(() =>
+    window.__hostMessages.some((message: any) =>
+      message.type === "export.ready" && message.version === 1
+    )
+  )).toBe(true);
+  await expect(diagram.locator("g.edgeLabel")).toHaveCount(10);
+});
+
 for (const fixture of fixtures) {
   test(`${fixture.number} ${fixture.name} renders sanitized labeled SVG`, async ({ page }) => {
     await loadMarkdown(page, `\`\`\`mermaid\n${fixture.source}\n\`\`\``);

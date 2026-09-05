@@ -16,6 +16,7 @@
     "@codemirror/search": "^6.5.10",
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.36.5",
+    "@mermaid-js/layout-elk": "0.2.3",
     "dompurify": "^3.2.6",
     "markdown-it": "^14.1.0",
     "markdown-it-anchor": "^9.2.0",
