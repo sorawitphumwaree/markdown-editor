@@ -4,7 +4,7 @@
     <UseWPF>true</UseWPF>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
-    <Version>1.3.1</Version>
+    <Version>1.3.2</Version>
     <Authors>Sorawit Phumwaree (Ham)</Authors>
     <Description>A lightweight Windows desktop editor for technical Markdown.</Description>
     <RepositoryUrl>https://github.com/sorawitphumwaree/markdown-editor</RepositoryUrl>
