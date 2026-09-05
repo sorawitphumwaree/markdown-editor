@@ -10,6 +10,11 @@ connected-node diagrams because it reduces avoidable curved crossings and keeps
 edge labels separate. Other diagram families retain their standard Mermaid
 renderer.
 
+State diagrams retain Mermaid's Dagre renderer because cyclic state machines can
+stall the optional ELK renderer. Markdown Editor gives Dagre more edge space and
+a more accurate label-width estimate, then performs a state-only SVG label pass
+that moves colliding transition labels clear of other labels and state nodes.
+
 The support baseline is versioned with the Mermaid dependency. Run the browser
 rendering suite and manually open
 [`test-cases/mermaid-rendering.md`](test-cases/mermaid-rendering.md) whenever

@@ -309,6 +309,87 @@ test("dense labelled flowcharts use readable non-overlapping ELK routing", async
   await expect(diagram.locator("g.edgeLabel")).toHaveCount(10);
 });
 
+test("dense machine state diagram keeps transition labels clear", async ({ page }) => {
+  await loadMarkdown(page, [
+    "```mermaid",
+    "stateDiagram",
+    "[*] --> Starting",
+    "Starting --> Initializing : Load configuration / Initialize system",
+    "Initializing --> Production : Machine ready",
+    "Initializing --> NotReady : Machine not ready",
+    "Production --> Production : Operator login / Select recipe / Select module lot / Execute test",
+    "Production --> Engineering : Ctrl+Q+W+E",
+    "NotReady --> NotReady : Display machine & hardware status / Contact engineer",
+    "NotReady --> Engineering : Ctrl+Q+W+E",
+    "Engineering --> Engineering : Configure machine / Diagnose / Manual test",
+    "Engineering --> Production : Machine ready / Exit engineering",
+    "Engineering --> NotReady : Machine not ready / Exit engineering",
+    "Production --> ShuttingDown : Shutdown",
+    "NotReady --> ShuttingDown : Shutdown",
+    "Engineering --> ShuttingDown : Shutdown",
+    "ShuttingDown --> [*]",
+    "```"
+  ].join("\n"));
+
+  const geometry = await page.locator(".mermaid-diagram").evaluate(element => {
+    const visibleRectangles = (selector: string) =>
+      [...element.querySelectorAll<SVGGraphicsElement>(selector)]
+        .map(item => item.getBoundingClientRect())
+        .filter(rect => rect.width > 0 && rect.height > 0);
+    const overlaps = (first: DOMRect, second: DOMRect) =>
+      first.left < second.right - 1
+      && first.right > second.left + 1
+      && first.top < second.bottom - 1
+      && first.bottom > second.top + 1;
+    const states = visibleRectangles("g.stateGroup, g.node");
+    const labelElements = [...element.querySelectorAll<SVGGraphicsElement>(
+      "g.edgeLabel:not(:has(g.edgeLabel))"
+    )].filter(item => item.textContent?.trim());
+    const labels = labelElements.map(item => item.getBoundingClientRect());
+    return {
+      stateCount: states.length,
+      labelCount: labels.length,
+      labelCollisionCount: labels.flatMap((label, index) =>
+        labels.slice(index + 1).filter(other => overlaps(label, other))).length,
+      stateLabelCollisionCount: labels.flatMap(label =>
+        states.filter(state => overlaps(label, state))).length
+    };
+  });
+
+  expect(geometry.stateCount).toBeGreaterThanOrEqual(6);
+  expect(geometry.labelCount).toBe(13);
+  expect(geometry.labelCollisionCount).toBe(0);
+  expect(geometry.stateLabelCollisionCount).toBe(0);
+
+  await page.evaluate(() => {
+    window.__sendHostMessage({
+      type: "view.setMode",
+      protocolVersion: 1,
+      documentId: "browser-test",
+      version: 1,
+      payload: { mode: "split" }
+    });
+  });
+  await expect(page.locator(".mermaid-state-diagram")).toBeVisible();
+
+  await page.evaluate(() => {
+    window.__sendHostMessage({
+      type: "export.prepare",
+      protocolVersion: 1,
+      documentId: "browser-test",
+      version: 1,
+      payload: {}
+    });
+  });
+  await expect.poll(() => page.evaluate(() =>
+    window.__hostMessages.some((message: any) =>
+      message.type === "export.ready" && message.version === 1
+    )
+  )).toBe(true);
+  await expect(page.locator(".mermaid-state-diagram g.edgeLabel").filter({ hasText: "Shutdown" }))
+    .toHaveCount(3);
+});
+
 for (const fixture of fixtures) {
   test(`${fixture.number} ${fixture.name} renders sanitized labeled SVG`, async ({ page }) => {
     await loadMarkdown(page, `\`\`\`mermaid\n${fixture.source}\n\`\`\``);

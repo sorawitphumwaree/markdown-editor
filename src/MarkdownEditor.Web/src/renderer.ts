@@ -100,6 +100,11 @@ export async function renderMarkdown(
     flowchart: {
       defaultRenderer: "elk"
     },
+    state: {
+      defaultRenderer: "dagre-wrapper",
+      edgeLengthFactor: "80",
+      fontSizeFactor: 7
+    },
     theme: theme === "dark" ? "dark" : "base",
     themeVariables: theme === "dark" ? undefined : {
       primaryColor: "#eee9fc",
@@ -114,13 +119,16 @@ export async function renderMarkdown(
   const diagrams = [...staging.querySelectorAll<HTMLElement>("pre > code.language-mermaid")];
   for (const [index, code] of diagrams.entries()) {
     const pre = code.parentElement!;
+    const diagramSource = code.textContent ?? "";
     try {
       const { svg } = await mermaid.render(
         `mermaid-${version}-${renderId}-${index}`,
-        code.textContent ?? ""
+        diagramSource
       );
       const wrapper = document.createElement("div");
       wrapper.className = "mermaid-diagram";
+      if (/^\s*stateDiagram(?:-v2)?\b/m.test(diagramSource))
+        wrapper.classList.add("mermaid-state-diagram");
       copySourceRange(pre, wrapper);
       wrapper.innerHTML = DOMPurify.sanitize(svg, {
         USE_PROFILES: { svg: true, svgFilters: true }
@@ -167,6 +175,7 @@ export async function renderMarkdown(
   if (!commitRenderedContent(preview, staging, isCurrent))
     return version;
 
+  resolveMermaidLabelCollisions(preview);
   initializeMermaidInteractions(preview);
 
   state = "loading-assets";
@@ -185,6 +194,83 @@ export function commitRenderedContent(
     return false;
   preview.replaceChildren(...staging.childNodes);
   return true;
+}
+
+export function resolveMermaidLabelCollisions(preview: HTMLElement): void {
+  for (const diagram of preview.querySelectorAll<HTMLElement>(".mermaid-state-diagram")) {
+    const svg = diagram.querySelector<SVGSVGElement>("svg");
+    if (!svg)
+      continue;
+
+    const svgRect = svg.getBoundingClientRect();
+    const viewBox = svg.viewBox.baseVal;
+    const scaleX = svgRect.width > 0 ? viewBox.width / svgRect.width : 1;
+    const scaleY = svgRect.height > 0 ? viewBox.height / svgRect.height : 1;
+    const obstacles = [...svg.querySelectorAll<SVGGraphicsElement>("g.stateGroup, g.node")]
+      .map(element => element.getBoundingClientRect())
+      .filter(rect => rect.width > 1 && rect.height > 1);
+    const labels = [...svg.querySelectorAll<SVGGraphicsElement>("g.edgeLabel")]
+      .filter(element => element.textContent?.trim())
+      .sort((first, second) => rectangleArea(second) - rectangleArea(first));
+    const placed: DOMRect[] = [];
+
+    for (const label of labels) {
+      const originalTransform = label.getAttribute("transform") ?? "";
+      const originalRect = label.getBoundingClientRect();
+      const stepX = originalRect.width / 2 + 12;
+      const stepY = originalRect.height + 12;
+      let resolved = false;
+
+      for (const [dx, dy] of collisionOffsets(stepX, stepY)) {
+        const adjustment = `translate(${dx * scaleX} ${dy * scaleY})`;
+        label.setAttribute("transform", `${originalTransform} ${adjustment}`.trim());
+        const candidate = label.getBoundingClientRect();
+        if (![...obstacles, ...placed].some(rect => rectanglesOverlap(candidate, rect))) {
+          placed.push(candidate);
+          resolved = true;
+          break;
+        }
+      }
+
+      if (!resolved) {
+        if (originalTransform)
+          label.setAttribute("transform", originalTransform);
+        else
+          label.removeAttribute("transform");
+        placed.push(originalRect);
+      }
+    }
+  }
+}
+
+function* collisionOffsets(stepX: number, stepY: number): Generator<[number, number]> {
+  yield [0, 0];
+  for (let radius = 1; radius <= 4; radius++) {
+    const candidates: Array<[number, number]> = [
+      [0, -radius * stepY],
+      [0, radius * stepY],
+      [-radius * stepX, 0],
+      [radius * stepX, 0],
+      [-radius * stepX, -radius * stepY],
+      [radius * stepX, -radius * stepY],
+      [-radius * stepX, radius * stepY],
+      [radius * stepX, radius * stepY]
+    ];
+    yield* candidates;
+  }
+}
+
+function rectanglesOverlap(first: DOMRect, second: DOMRect): boolean {
+  const gap = 4;
+  return first.left < second.right + gap
+    && first.right > second.left - gap
+    && first.top < second.bottom + gap
+    && first.bottom > second.top - gap;
+}
+
+function rectangleArea(element: SVGGraphicsElement): number {
+  const rect = element.getBoundingClientRect();
+  return rect.width * rect.height;
 }
 
 export function getRenderState(): RenderState {
