@@ -4,6 +4,16 @@ All notable user-facing changes to Markdown Editor are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.4.0] - 2026-09-13
+
+### Changed
+
+- Simplified the main window by removing the left folder sidebar and the
+  **File > Open Folder** command. Opening, editing, previewing, saving, and
+  exporting individual Markdown documents work exactly as before.
+- Relative Markdown links are resolved from the current document directory;
+  the folder-workspace containment rule no longer applies.
+
 ## [1.3.3] - 2026-09-05
 
 ### Fixed
