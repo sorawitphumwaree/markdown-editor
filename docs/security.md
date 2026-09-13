@@ -5,7 +5,6 @@
 - Mermaid uses strict security mode.
 - The WebView receives no native host objects.
 - Local links are resolved and classified by the native path resolver.
-- Traversal outside an open workspace is rejected.
 - External links are opened by Windows, outside the privileged WebView.
 - Unsupported absolute URI schemes, including `file:`, are rejected.
 - Message envelopes and protocol versions are validated.

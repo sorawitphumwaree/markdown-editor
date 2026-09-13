@@ -12,21 +12,20 @@ public sealed class WorkspacePathResolverTests
     {
         var result = new WorkspacePathResolver().Resolve(
             @"C:\workspace\docs\readme.md",
-            "https://example.com/page",
-            @"C:\workspace");
+            "https://example.com/page");
 
         result.Kind.Should().Be(PathTargetKind.ExternalUrl);
     }
 
     [Fact]
-    public void Resolve_PathOutsideWorkspace_IsUnsafe()
+    public void Resolve_RelativePathEscapingDocumentDirectory_IsMissingNotUnsafe()
     {
         var result = new WorkspacePathResolver().Resolve(
             @"C:\workspace\docs\readme.md",
-            "../../secret.md",
-            @"C:\workspace");
+            "../../secret.md");
 
-        result.Kind.Should().Be(PathTargetKind.Unsafe);
+        result.Kind.Should().Be(PathTargetKind.Missing);
+        result.FullPath.Should().Be(@"C:\secret.md");
     }
 
     [Fact]
@@ -36,8 +35,7 @@ public sealed class WorkspacePathResolverTests
 
         var result = new WorkspacePathResolver().Resolve(
             source,
-            "#system-design",
-            @"C:\workspace");
+            "#system-design");
 
         result.Kind.Should().Be(PathTargetKind.Markdown);
         result.FullPath.Should().Be(source);
@@ -49,8 +47,7 @@ public sealed class WorkspacePathResolverTests
     {
         var result = new WorkspacePathResolver().Resolve(
             @"C:\workspace\docs\readme.md",
-            "file:///C:/Windows/System32/config",
-            @"C:\workspace");
+            "file:///C:/Windows/System32/config");
 
         result.Kind.Should().Be(PathTargetKind.Unsupported);
     }

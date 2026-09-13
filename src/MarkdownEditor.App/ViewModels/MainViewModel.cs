@@ -15,13 +15,9 @@ public sealed partial class MainViewModel(
     private DocumentTabViewModel? _activeDocument;
 
     [ObservableProperty]
-    private string? _workspacePath;
-
-    [ObservableProperty]
     private string _status = "Ready";
 
     public ObservableCollection<DocumentTabViewModel> Documents { get; } = [];
-    public ObservableCollection<WorkspaceItemViewModel> WorkspaceItems { get; } = [];
 
     public DocumentTabViewModel NewDocument()
     {
@@ -110,15 +106,5 @@ public sealed partial class MainViewModel(
     {
         await documentWorkflow.UpdateContentAsync(document.Model, content);
         document.NotifyContentChanged();
-    }
-
-    public void OpenWorkspace(string root)
-    {
-        WorkspacePath = Path.GetFullPath(root);
-        WorkspaceItems.Clear();
-        var item = new WorkspaceItemViewModel(WorkspacePath);
-        item.LoadChildren();
-        WorkspaceItems.Add(item);
-        Status = $"Workspace: {WorkspacePath}";
     }
 }

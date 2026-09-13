@@ -2,6 +2,6 @@ namespace MarkdownEditor.Application.Paths;
 
 public interface IWorkspacePathResolver
 {
-    PathResolutionResult Resolve(string sourceDocumentPath, string referencedPath, string? workspaceRoot);
+    PathResolutionResult Resolve(string sourceDocumentPath, string referencedPath);
 }
 

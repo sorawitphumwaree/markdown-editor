@@ -52,7 +52,7 @@ diagram.
 
 ## Presentation boundary
 
-`MainViewModel` manages tab and workspace presentation state but delegates
+`MainViewModel` manages tab and document presentation state but delegates
 document persistence and recovery sequencing to the Application layer.
 `MainWindow` is the WPF/WebView2 adapter: it owns native dialogs, translates
 versioned messages, and invokes Application workflows. The browser surface owns

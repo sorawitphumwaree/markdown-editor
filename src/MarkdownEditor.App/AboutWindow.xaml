@@ -58,7 +58,7 @@
           <TextBlock Text="• Horizontal drag-and-drop tab reordering" Margin="0,2"/>
           <TextBlock Text="• Mermaid diagrams and syntax-highlighted code" Margin="0,2"/>
           <TextBlock Text="• Click navigation between source and rendered content" Margin="0,2"/>
-          <TextBlock Text="• Folder Explorer, relative links, recovery snapshots, and PDF export"
+          <TextBlock Text="• Relative links, recovery snapshots, and PDF export"
                      TextWrapping="Wrap" Margin="0,2"/>
         </StackPanel>
       </Border>
