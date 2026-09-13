@@ -6,7 +6,6 @@ embedded WebView2 editing/rendering surface.
 ## Features
 
 - Open and safely save UTF-8 Markdown files.
-- Open a folder and browse documentation assets.
 - Keep multiple documents open with per-document state.
 - Reorder open tabs by dragging them horizontally to the desired position.
 - Reuse the running application when another Markdown file is opened from Windows.

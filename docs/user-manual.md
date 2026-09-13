@@ -32,7 +32,6 @@ application is already running, the file opens as the active tab in that window.
 
 The window contains:
 
-- **Explorer** on the left for files in an opened folder.
 - **Document tabs** above the document area.
 - **Preview/Split selector** in the toolbar.
 - **Editor and preview** in the main document area.
@@ -41,14 +40,9 @@ The window contains:
 Drag the divider in Split mode to change the space assigned to the editor and
 preview.
 
-## Open documents and folders
+## Open documents
 
 Use **File > Open** or `Ctrl+O` to open a Markdown document.
-
-Use **File > Open Folder** to show a documentation folder in Explorer. Expand
-folders and double-click a Markdown file to open it. Documentation images are
-shown in Explorer, but native relative-image preview serving is not yet
-implemented.
 
 Opening an already-open document activates its existing tab instead of creating
 a duplicate.
@@ -123,9 +117,6 @@ fall back to diagram-level navigation.
 Markdown links are resolved relative to the current document. Markdown targets
 open in another tab. Same-document fragments move to the matching heading.
 External URLs open through Windows in the default application.
-
-When a folder is open as the workspace, relative links outside that folder are
-rejected.
 
 ## Export PDF
 

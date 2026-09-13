@@ -12,7 +12,7 @@ The complete release gate is:
 | Layer | Scope | Location | Runner |
 | --- | --- | --- | --- |
 | Unit | Domain rules, application policies, shortcuts, and rendering helpers | `tests/MarkdownEditor.Domain.Tests`, `tests/MarkdownEditor.Application.Tests`, `src/MarkdownEditor.Web/src/*.test.ts` | xUnit, Vitest |
-| Component | WPF view models and workspace-tree behavior without opening windows | `tests/MarkdownEditor.App.Tests` | xUnit |
+| Component | WPF view-model behavior without opening windows | `tests/MarkdownEditor.App.Tests` | xUnit |
 | Integration | Filesystem persistence, settings, recovery, path safety, and the browser/native message contract | `tests/MarkdownEditor.Infrastructure.Tests`, `src/MarkdownEditor.Web/tests/browser` | xUnit, Playwright with Edge |
 | System | Production web build, portable ZIP contents, and packaged desktop startup | `scripts/smoke-package.ps1` | PowerShell on Windows |
 

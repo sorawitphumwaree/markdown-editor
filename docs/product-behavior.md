@@ -45,8 +45,7 @@ Navigation is deliberate rather than continuously scroll-coupled:
 - Reload from disk requires confirmation before discarding local changes.
 - Unsaved edits create local recovery snapshots. Automatic recovery restore is
   not yet exposed in the UI.
-- Relative links are resolved from the current document directory. Paths outside
-  an open workspace are rejected.
+- Relative links are resolved from the current document directory.
 
 ## Keyboard commands
 

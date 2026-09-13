@@ -7,7 +7,6 @@ public enum PathTargetKind
     ExternalUrl,
     OtherLocalFile,
     Missing,
-    Unsafe,
     Unsupported
 }
 
@@ -15,6 +14,4 @@ public sealed record PathResolutionResult(
     PathTargetKind Kind,
     string? FullPath,
     string? Fragment,
-    bool IsInsideWorkspace,
     string? Error = null);
-

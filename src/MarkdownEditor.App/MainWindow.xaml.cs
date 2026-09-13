@@ -279,7 +279,7 @@ public partial class MainWindow : Window
         if (string.IsNullOrWhiteSpace(href))
             return;
 
-        var result = _pathResolver.Resolve(active.FilePath, href, _viewModel.WorkspacePath);
+        var result = _pathResolver.Resolve(active.FilePath, href);
         switch (result.Kind)
         {
             case PathTargetKind.Markdown:
@@ -319,13 +319,6 @@ public partial class MainWindow : Window
     {
         _viewModel.NewDocument();
         await ActivateDocumentAsync();
-    }
-
-    private void OpenFolder(object sender, RoutedEventArgs e)
-    {
-        var dialog = new OpenFolderDialog();
-        if (dialog.ShowDialog(this) == true)
-            _viewModel.OpenWorkspace(dialog.FolderName);
     }
 
     private async void SaveFile(object sender, RoutedEventArgs e) => await SaveActiveAsync();
@@ -715,22 +708,6 @@ public partial class MainWindow : Window
             source = System.Windows.Media.VisualTreeHelper.GetParent(source);
         }
         return null;
-    }
-
-    private void WorkspaceItemExpanded(object sender, RoutedEventArgs e)
-    {
-        if (e.OriginalSource is TreeViewItem { DataContext: WorkspaceItemViewModel item })
-            item.LoadChildren();
-    }
-
-    private async void WorkspaceItemDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
-    {
-        if ((sender as TreeView)?.SelectedItem is WorkspaceItemViewModel { IsDirectory: false } item
-            && Path.GetExtension(item.Path) is ".md" or ".markdown")
-        {
-            await _viewModel.OpenAsync(item.Path);
-            await ActivateDocumentAsync();
-        }
     }
 
     private void OnClosing(object? sender, CancelEventArgs e)
