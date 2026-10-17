@@ -13,6 +13,37 @@
 * { box-sizing: border-box; }
 html, body, #workspace { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 body { background: var(--background); color: var(--foreground); }
+#document-layout { display: flex; width: 100%; height: 100%; }
+#workspace { flex: 1; min-width: 0; }
+#contents {
+  flex: 0 0 clamp(160px, 22vw, 240px);
+  overflow: auto;
+  border-left: 1px solid var(--border);
+  padding: 16px 12px;
+  font: 13px/1.45 "Segoe UI", "Leelawadee UI", sans-serif;
+  background: var(--muted);
+}
+#contents[hidden] { display: none; }
+#contents h2 { margin: 0 0 12px; font-size: 14px; }
+#contents-list button {
+  display: block;
+  width: 100%;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--foreground);
+  font: inherit;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+#contents-list button[data-level="2"] { padding-left: 20px; }
+#contents-list button:hover { background: var(--accent-hover); }
+#contents-list button:focus-visible { outline: 2px solid var(--accent); }
+#contents-list p { color: var(--secondary); }
+:root.exporting #contents { display: none; }
+:root.exporting #document-layout { display: block; height: auto; }
 ::selection { background: color-mix(in srgb, var(--accent-light) 38%, white); }
 
 #workspace {
@@ -114,6 +145,8 @@ body { background: var(--background); color: var(--foreground); }
 .mermaid-zoom-label { min-width: 44px; align-self: center; color: var(--secondary); font-size: 12px; }
 
 @media print {
+  #contents { display: none; }
+  #document-layout { display: block; height: auto; }
   html, body { width: auto; height: auto; overflow: visible; }
   #editor, #divider { display: none !important; }
   #workspace { display: block; width: auto; height: auto; overflow: visible; }

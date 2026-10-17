@@ -78,6 +78,18 @@ position while it remains open.
 
 ## Markdown rendering
 
+### Table of contents
+
+Use **Contents** beside the Preview/Split selector to show or hide the compact
+right-hand table of contents. It lists H1 and H2 headings in document order and
+updates as you edit or switch tabs. Select a heading to navigate the preview and
+source to that heading. Deeper headings and heading-like text in code blocks
+are excluded.
+
+Contents starts visible. Your latest visibility choice is saved per Windows user
+and restored on later launches, including when upgrading from older settings.
+The navigation panel is excluded from PDF exports.
+
 The preview supports CommonMark-style Markdown with GitHub Flavored Markdown
 features such as tables and task lists. Fenced code blocks receive syntax
 highlighting for common technical languages.

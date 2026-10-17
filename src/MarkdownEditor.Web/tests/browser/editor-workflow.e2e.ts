@@ -63,6 +63,55 @@ const messages = (page: Page, type: string) =>
 
 test.beforeEach(async ({ page }) => startHost(page));
 
+test("contents filters real headings and updates across edits and active documents", async ({ page }) => {
+  await load(page, "# First\n\n## **Second**\n\n### Excluded\n\n```md\n# Code only\n```\n\nSetext\n------");
+  const entries = page.locator("#contents-list button");
+  await expect(page.locator("#contents")).toBeVisible();
+  await expect(entries).toHaveText(["First", "Second", "Setext"]);
+  await page.locator(".cm-content").click();
+  await page.keyboard.press("Control+A");
+  await page.keyboard.type("## Edited");
+  await expect(entries).toHaveText(["Edited"]);
+  await send(page, "document.load", {
+    content: "# Other document", viewMode: "preview", cursorLine: 1, editorScroll: 0, previewScroll: 0
+  }, 10);
+  await expect(entries).toHaveText(["Other document"]);
+  await send(page, "document.clear", {});
+  await expect(entries).toHaveCount(0);
+  await expect(page.locator("#contents-list")).toHaveText("No H1 or H2 headings");
+});
+
+test("contents visibility follows the user preference and stays out of PDF output", async ({ page }) => {
+  await load(page, "# Heading");
+  await send(page, "view.setContentsVisibility", { visible: false });
+  await expect(page.locator("#contents")).toBeHidden();
+  await send(page, "view.setMode", { mode: "preview" });
+  await expect(page.locator("#contents")).toBeHidden();
+  await send(page, "view.setContentsVisibility", { visible: true });
+  await expect(page.locator("#contents")).toBeVisible();
+  await send(page, "export.prepare", {});
+  await expect.poll(() => messages(page, "export.ready")).toHaveLength(1);
+  await expect(page.locator("#contents")).toBeHidden();
+  await send(page, "export.complete", {});
+  await expect(page.locator("#contents")).toBeVisible();
+  await page.emulateMedia({ media: "print" });
+  await expect(page.locator("#contents")).toBeHidden();
+});
+
+test("contents navigates duplicate headings independently in Preview and Split", async ({ page }) => {
+  const content = "# Same\n\n" + "paragraph\n\n".repeat(80) + "## Same";
+  await load(page, content, "preview");
+  await page.locator("#contents-list button").nth(1).click();
+  await expect.poll(() => page.locator("#preview").evaluate(element => element.scrollTop)).toBeGreaterThan(500);
+  await expect.poll(async () => (await messages(page, "editor.cursorChanged")).at(-1)?.payload.line)
+    .toBe(163);
+  await send(page, "view.setMode", { mode: "split" });
+  await page.locator("#contents-list button").first().click();
+  await expect.poll(async () => (await messages(page, "editor.cursorChanged")).at(-1)?.payload.line)
+    .toBe(1);
+  await expect.poll(() => page.locator("#preview").evaluate(element => element.scrollTop)).toBeLessThan(100);
+});
+
 test("loads markdown into editor and sanitized preview", async ({ page }) => {
   await load(page, "# Heading\n\n<script>bad()</script>\n\n**bold**");
 

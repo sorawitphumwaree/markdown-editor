@@ -137,6 +137,11 @@
                       ToolTip="Show the editor and rendered document side by side"
                       Click="SelectSplitView"/>
       </StackPanel>
+      <ToggleButton x:Name="ContentsButton" Content="Contents"
+                    Margin="12,0,0,0" Style="{StaticResource ViewModeSegmentStyle}"
+                    IsEnabled="False" IsChecked="True"
+                    ToolTip="Show or hide the table of contents"
+                    Click="ToggleContents"/>
     </ToolBar>
 
     <StatusBar DockPanel.Dock="Bottom"

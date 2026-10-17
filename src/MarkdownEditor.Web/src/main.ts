@@ -9,11 +9,13 @@ import { resolveApplicationShortcut } from "./shortcuts";
 import { isEligibleTranslationSelection, mapTranslationPayload } from "./translation";
 import type { AppMessage, DocumentPayload } from "./types";
 import "./styles.css";
+import { updateContents } from "./contents";
 
 const editorHost = document.querySelector<HTMLElement>("#editor")!;
 const preview = document.querySelector<HTMLElement>("#preview")!;
 const workspace = document.querySelector<HTMLElement>("#workspace")!;
 const divider = document.querySelector<HTMLElement>("#divider")!;
+const contentsList = document.querySelector<HTMLElement>("#contents-list")!;
 const translationMenu = document.querySelector<HTMLElement>("#translation-menu")!;
 const translateCommand = document.querySelector<HTMLButtonElement>("#translate-command")!;
 const translationPopup = document.querySelector<HTMLElement>("#translation-popup")!;
@@ -110,6 +112,7 @@ async function handleMessage(message: AppMessage): Promise<void> {
       const loadingDocumentId = documentId;
       const loadingVersion = documentVersion;
       const loadingGeneration = ++renderGeneration;
+      contentsList.replaceChildren();
       applyingNativeUpdate = true;
       editor.dispatch({
         changes: { from: 0, to: editor.state.doc.length, insert: payload.content }
@@ -129,6 +132,7 @@ async function handleMessage(message: AppMessage): Promise<void> {
       );
       if (!isCurrentRender(loadingDocumentId, loadingVersion, loadingGeneration))
         break;
+      refreshContents();
       restoreViewports(payload.editorScroll, payload.previewScroll);
       post("preview.renderCompleted", documentId, documentVersion, { state: getRenderState() });
       break;
@@ -144,11 +148,16 @@ async function handleMessage(message: AppMessage): Promise<void> {
       });
       applyingNativeUpdate = false;
       preview.replaceChildren();
+      refreshContents();
       editor.scrollDOM.scrollTop = 0;
       preview.scrollTop = 0;
       break;
     case "view.setMode":
       setMode((message.payload as { mode: "preview" | "split" }).mode);
+      break;
+    case "view.setContentsVisibility":
+      document.querySelector<HTMLElement>("#contents")!.hidden =
+        !(message.payload as { visible: boolean }).visible;
       break;
     case "translation.loading":
     case "translation.completed":
@@ -236,9 +245,22 @@ async function renderPreservingViewports(
     version,
     () => isCurrentRender(renderingDocumentId, version, renderingGeneration)
   );
-  if (isCurrentRender(renderingDocumentId, version, renderingGeneration))
+  if (isCurrentRender(renderingDocumentId, version, renderingGeneration)) {
+    refreshContents();
     restoreViewports(editorTop, previewTop);
+  }
   return completedVersion;
+}
+
+function refreshContents(): void {
+  updateContents(preview, contentsList, heading => {
+    heading.scrollIntoView({ block: "start" });
+    const lineNumber = Number(heading.dataset.sourceStart);
+    if (Number.isInteger(lineNumber) && lineNumber > 0 && lineNumber <= editor.state.doc.lines) {
+      const line = editor.state.doc.line(lineNumber);
+      editor.dispatch({ selection: { anchor: line.from }, scrollIntoView: true });
+    }
+  });
 }
 
 function isCurrentRender(

@@ -6,11 +6,17 @@
     <title>Markdown Editor</title>
   </head>
   <body>
-    <main id="workspace">
-      <section id="editor" aria-label="Markdown source"></section>
-      <div id="divider" role="separator"></div>
-      <article id="preview" aria-label="Rendered preview"></article>
-    </main>
+    <div id="document-layout">
+      <main id="workspace">
+        <section id="editor" aria-label="Markdown source"></section>
+        <div id="divider" role="separator"></div>
+        <article id="preview" aria-label="Rendered preview"></article>
+      </main>
+      <nav id="contents" aria-label="Table of contents">
+        <h2>Contents</h2>
+        <div id="contents-list"></div>
+      </nav>
+    </div>
     <div id="translation-menu" role="menu" hidden>
       <button id="translate-command" role="menuitem">Translate</button>
     </div>
