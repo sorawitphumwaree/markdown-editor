@@ -197,20 +197,20 @@ test("Mermaid zoom, pan, and reset stay scoped to one diagram", async ({ page })
 
   await expect(first.locator(".mermaid-zoom-label")).toHaveText("200%");
   await expect(second.locator(".mermaid-zoom-label")).toHaveText("100%");
-  const beforePan = await first.evaluate(element => ({
+  const beforePan = await first.locator(".mermaid-viewport").evaluate(element => ({
     left: element.scrollLeft,
     top: element.scrollTop,
     width: element.scrollWidth
   }));
-  expect(beforePan.width).toBeGreaterThan(await first.evaluate(element => element.clientWidth));
+  expect(beforePan.width).toBeGreaterThan(await first.locator(".mermaid-viewport").evaluate(element => element.clientWidth));
 
-  const bounds = await first.boundingBox();
+  const bounds = await first.locator(".mermaid-viewport").boundingBox();
   expect(bounds).not.toBeNull();
   await page.mouse.move(bounds!.x + bounds!.width * 0.75, bounds!.y + bounds!.height * 0.7);
   await page.mouse.down();
   await page.mouse.move(bounds!.x + bounds!.width * 0.35, bounds!.y + bounds!.height * 0.35);
   await page.mouse.up();
-  const afterPan = await first.evaluate(element => ({
+  const afterPan = await first.locator(".mermaid-viewport").evaluate(element => ({
     left: element.scrollLeft,
     top: element.scrollTop
   }));
@@ -219,7 +219,7 @@ test("Mermaid zoom, pan, and reset stay scoped to one diagram", async ({ page })
 
   await first.getByRole("button", { name: "Reset zoom and pan" }).click();
   await expect(first.locator(".mermaid-zoom-label")).toHaveText("100%");
-  await expect.poll(() => first.evaluate(element => [element.scrollLeft, element.scrollTop]))
+  await expect.poll(() => first.locator(".mermaid-viewport").evaluate(element => [element.scrollLeft, element.scrollTop]))
     .toEqual([0, 0]);
 });
 
@@ -390,6 +390,73 @@ test("dense machine state diagram keeps transition labels clear", async ({ page 
     .toHaveCount(3);
 });
 
+for (const mode of ["preview", "split"]) {
+  test(`Mermaid control bars reserve space in narrow ${mode} view`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 800, height: 600 });
+    await loadMarkdown(page, [
+      "Text immediately above the diagram.", "", "```mermaid", "flowchart TD",
+      ...Array.from({ length: 15 }, (_, i) => `N${i} --> N${i + 1}`),
+      "```", "", "Text between diagrams.", "", "```mermaid",
+      "flowchart LR", "A --> B", "```"
+    ].join("\n"));
+    await page.evaluate(viewMode => window.__sendHostMessage({
+      type: "view.setMode", protocolVersion: 1, documentId: "browser-test",
+      version: 1, payload: { mode: viewMode }
+    }), mode);
+
+    const first = page.locator(".mermaid-diagram").first();
+    const assertReservedSpace = async () => {
+      for (const diagram of await page.locator(".mermaid-diagram").all()) {
+        const geometry = await diagram.evaluate(element => {
+          const bar = element.querySelector(".mermaid-toolbar")!.getBoundingClientRect();
+          const viewport = element.querySelector(".mermaid-viewport")!.getBoundingClientRect();
+          const preceding = element.previousElementSibling!.getBoundingClientRect();
+          const outer = element.getBoundingClientRect();
+          return { barBottom: bar.bottom, barTop: bar.top, viewportTop: viewport.top,
+            precedingBottom: preceding.bottom, barLeft: bar.left, barRight: bar.right,
+            outerLeft: outer.left, outerRight: outer.right };
+        });
+        expect(geometry.barBottom).toBeLessThanOrEqual(geometry.viewportTop);
+        expect(geometry.barTop).toBeGreaterThanOrEqual(geometry.precedingBottom);
+        expect(geometry.barLeft).toBeGreaterThanOrEqual(geometry.outerLeft);
+        expect(geometry.barRight).toBeLessThanOrEqual(geometry.outerRight);
+      }
+    };
+    await assertReservedSpace();
+    await first.getByRole("button", { name: "Zoom in" }).click();
+    await first.locator(".mermaid-viewport").evaluate(element => {
+      element.scrollTop = 200;
+      element.scrollLeft = 100;
+    });
+    await expect.poll(() => first.locator(".mermaid-viewport").evaluate(e => e.scrollTop))
+      .toBeGreaterThan(0);
+    await page.locator("#preview").evaluate(element => { element.scrollTop = 40; });
+    await assertReservedSpace();
+    await first.getByRole("button", { name: "Reset zoom and pan" }).click();
+    await expect(first.locator(".mermaid-zoom-label")).toHaveText("100%");
+    await expect.poll(() => first.locator(".mermaid-viewport").evaluate(e => [e.scrollLeft, e.scrollTop]))
+      .toEqual([0, 0]);
+    await page.screenshot({ path: testInfo.outputPath("control-bar.png") });
+    await page.emulateMedia({ media: "print" });
+    await expect(page.locator(".mermaid-toolbar").first()).toBeHidden();
+    await expect(first.locator(".mermaid-viewport")).toHaveCSS("max-height", "none");
+    await expect(first.locator(".mermaid-viewport")).toHaveCSS("overflow", "visible");
+    await page.evaluate(() => window.__sendHostMessage({
+      type: "export.prepare", protocolVersion: 1, documentId: "browser-test",
+      version: 1, payload: {}
+    }));
+    await expect.poll(() => page.evaluate(() => window.__hostMessages.some(
+      (message: any) => message.type === "export.ready"
+    ))).toBe(true);
+    await expect(page.locator(".mermaid-toolbar").first()).toBeHidden();
+    const printGeometry = await first.locator(".mermaid-viewport").evaluate(element => ({
+      viewport: element.getBoundingClientRect().width,
+      svg: element.querySelector("svg")!.getBoundingClientRect().width
+    }));
+    expect(printGeometry.svg).toBeCloseTo(printGeometry.viewport, 0);
+  });
+}
+
 for (const fixture of fixtures) {
   test(`${fixture.number} ${fixture.name} renders sanitized labeled SVG`, async ({ page }) => {
     await loadMarkdown(page, `\`\`\`mermaid\n${fixture.source}\n\`\`\``);
@@ -397,7 +464,7 @@ for (const fixture of fixtures) {
     const diagram = page.locator(".mermaid-diagram");
     await expect(diagram).toHaveCount(1);
     await expect(page.locator(".render-error")).toHaveCount(0);
-    const rootSvg = diagram.locator(":scope > svg");
+    const rootSvg = diagram.locator(".mermaid-viewport > svg");
     await expect(rootSvg).toHaveCount(1);
     await expect(diagram).toContainText(fixture.expectedLabel);
 

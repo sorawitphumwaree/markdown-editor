@@ -4,6 +4,14 @@ All notable user-facing changes to Markdown Editor are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.5.1] - 2026-10-17
+
+### Fixed
+
+- Mermaid zoom controls now occupy a compact bar above each diagram instead of
+  covering content. Zoomed diagrams scroll independently below the bar, and
+  print/PDF output continues to exclude controls.
+
 ## [1.5.0] - 2026-10-17
 
 ### Added
