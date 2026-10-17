@@ -22,8 +22,13 @@ export function initializeDiagram(diagram: HTMLElement): void {
     return;
 
   diagram.dataset.interactive = "true";
-  diagram.tabIndex = 0;
-  diagram.setAttribute("aria-label", "Interactive Mermaid diagram");
+  const baseWidth = Math.max(1, svg.getBoundingClientRect().width);
+  const viewport = diagram.ownerDocument.createElement("div");
+  viewport.className = "mermaid-viewport";
+  viewport.tabIndex = 0;
+  viewport.setAttribute("aria-label", "Interactive Mermaid diagram");
+  svg.replaceWith(viewport);
+  viewport.append(svg);
 
   const toolbar = diagram.ownerDocument.createElement("div");
   toolbar.className = "mermaid-toolbar";
@@ -37,7 +42,6 @@ export function initializeDiagram(diagram: HTMLElement): void {
   toolbar.append(zoomOut, zoomLabel, zoomIn, reset);
   diagram.prepend(toolbar);
 
-  const baseWidth = Math.max(1, svg.getBoundingClientRect().width);
   const state: DiagramState = { scale: 1, baseWidth, scrollLeft: 0, scrollTop: 0 };
   let panStart: { x: number; y: number } | undefined;
   let suppressClick = false;
@@ -52,10 +56,10 @@ export function initializeDiagram(diagram: HTMLElement): void {
     zoomIn.disabled = state.scale >= MAX_SCALE;
     if (anchorX !== undefined && anchorY !== undefined && previousScale !== state.scale) {
       const ratio = state.scale / previousScale;
-      diagram.scrollLeft = (diagram.scrollLeft + anchorX) * ratio - anchorX;
-      diagram.scrollTop = (diagram.scrollTop + anchorY) * ratio - anchorY;
+      viewport.scrollLeft = (viewport.scrollLeft + anchorX) * ratio - anchorX;
+      viewport.scrollTop = (viewport.scrollTop + anchorY) * ratio - anchorY;
     }
-    diagram.classList.toggle("is-zoomed", state.scale > 1);
+    viewport.classList.toggle("is-zoomed", state.scale > 1);
   };
 
   zoomOut.addEventListener("click", event => {
@@ -69,15 +73,15 @@ export function initializeDiagram(diagram: HTMLElement): void {
   reset.addEventListener("click", event => {
     event.stopPropagation();
     applyScale(1);
-    diagram.scrollTo({ left: 0, top: 0 });
+    viewport.scrollTo({ left: 0, top: 0 });
   });
   toolbar.addEventListener("pointerdown", event => event.stopPropagation());
 
-  diagram.addEventListener("wheel", event => {
+  viewport.addEventListener("wheel", event => {
     if (!event.ctrlKey)
       return;
     event.preventDefault();
-    const bounds = diagram.getBoundingClientRect();
+    const bounds = viewport.getBoundingClientRect();
     applyScale(
       state.scale + (event.deltaY < 0 ? SCALE_STEP : -SCALE_STEP),
       event.clientX - bounds.left,
@@ -85,34 +89,34 @@ export function initializeDiagram(diagram: HTMLElement): void {
     );
   }, { passive: false });
 
-  diagram.addEventListener("pointerdown", event => {
+  viewport.addEventListener("pointerdown", event => {
     if (event.button !== 0 || state.scale <= 1 || toolbar.contains(event.target as Node))
       return;
-    state.scrollLeft = diagram.scrollLeft + event.clientX;
-    state.scrollTop = diagram.scrollTop + event.clientY;
+    state.scrollLeft = viewport.scrollLeft + event.clientX;
+    state.scrollTop = viewport.scrollTop + event.clientY;
     panStart = { x: event.clientX, y: event.clientY };
-    diagram.classList.add("is-panning");
-    diagram.setPointerCapture(event.pointerId);
+    viewport.classList.add("is-panning");
+    viewport.setPointerCapture(event.pointerId);
     event.preventDefault();
   });
-  diagram.addEventListener("pointermove", event => {
-    if (!diagram.hasPointerCapture(event.pointerId))
+  viewport.addEventListener("pointermove", event => {
+    if (!viewport.hasPointerCapture(event.pointerId))
       return;
     if (panStart && (Math.abs(event.clientX - panStart.x) > 3
         || Math.abs(event.clientY - panStart.y) > 3))
       suppressClick = true;
-    diagram.scrollLeft = state.scrollLeft - event.clientX;
-    diagram.scrollTop = state.scrollTop - event.clientY;
+    viewport.scrollLeft = state.scrollLeft - event.clientX;
+    viewport.scrollTop = state.scrollTop - event.clientY;
   });
   const finishPan = (event: PointerEvent) => {
-    if (diagram.hasPointerCapture(event.pointerId))
-      diagram.releasePointerCapture(event.pointerId);
-    diagram.classList.remove("is-panning");
+    if (viewport.hasPointerCapture(event.pointerId))
+      viewport.releasePointerCapture(event.pointerId);
+    viewport.classList.remove("is-panning");
     panStart = undefined;
   };
-  diagram.addEventListener("pointerup", finishPan);
-  diagram.addEventListener("pointercancel", finishPan);
-  diagram.addEventListener("click", event => {
+  viewport.addEventListener("pointerup", finishPan);
+  viewport.addEventListener("pointercancel", finishPan);
+  viewport.addEventListener("click", event => {
     if (!suppressClick)
       return;
     suppressClick = false;

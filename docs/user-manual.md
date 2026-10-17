@@ -203,7 +203,8 @@ the affected diagram.
 
 ### A Mermaid diagram is too small to inspect
 
-Use the controls in the diagram's upper-right corner to zoom in or out. Once
+Use the compact control bar above each diagram to zoom in or out. The bar has
+its own space and stays clear of the diagram while you pan or scroll inside it. Once
 enlarged, drag the diagram horizontally or vertically to inspect it. Choose
 **Reset** to restore its original scale and position. You can also hold Ctrl and
 use the mouse wheel over a diagram to zoom; an ordinary wheel gesture continues

@@ -103,7 +103,10 @@ body { background: var(--background); color: var(--foreground); }
 .source-active { outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent); }
 .render-error { color: #b42318; border: 1px solid #f04438; white-space: pre-wrap; }
 .mermaid-diagram {
-  position: relative;
+  border-radius: 6px;
+  text-align: center;
+}
+.mermaid-viewport {
   max-height: min(70vh, 720px);
   overflow: auto;
   border: 1px solid transparent;
@@ -111,23 +114,20 @@ body { background: var(--background); color: var(--foreground); }
   text-align: center;
   overscroll-behavior: contain;
 }
-.mermaid-diagram:focus { border-color: var(--accent-light); outline: none; }
-.mermaid-diagram.is-zoomed { cursor: grab; user-select: none; }
-.mermaid-diagram.is-panning { cursor: grabbing; }
+.mermaid-viewport:focus { border-color: var(--accent-light); outline: none; }
+.mermaid-viewport.is-zoomed { cursor: grab; user-select: none; }
+.mermaid-viewport.is-panning { cursor: grabbing; }
 .mermaid-toolbar {
-  position: sticky;
-  z-index: 2;
-  top: 8px;
-  left: 100%;
   display: flex;
-  width: max-content;
-  margin: 8px 8px -40px auto;
+  width: fit-content;
+  max-width: 100%;
+  flex-wrap: wrap;
+  margin: 0 0 6px auto;
   padding: 4px;
   gap: 4px;
   border: 1px solid var(--border);
   border-radius: 7px;
-  background: rgb(255 255 255 / 94%);
-  box-shadow: 0 2px 8px rgb(23 24 30 / 14%);
+  background: var(--background);
 }
 .mermaid-toolbar button {
   min-width: 30px;
@@ -156,8 +156,8 @@ body { background: var(--background); color: var(--foreground); }
     break-inside: avoid;
   }
   .mermaid-toolbar { display: none; }
-  .mermaid-diagram { max-height: none; border: 0; }
-  .mermaid-diagram > svg { width: 100% !important; max-width: 100% !important; height: auto !important; }
+  .mermaid-viewport { max-height: none; overflow: visible; border: 0; }
+  .mermaid-viewport > svg { width: 100% !important; max-width: 100% !important; height: auto !important; }
 }
 
 :root.exporting,

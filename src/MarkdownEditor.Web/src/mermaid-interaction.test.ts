@@ -10,9 +10,9 @@ function createDiagram(): { dom: JSDOM; diagram: HTMLElement; svg: SVGSVGElement
     width: 800, height: 400, top: 0, left: 0, right: 800, bottom: 400, x: 0, y: 0,
     toJSON: () => ({})
   });
-  (diagram as any).scrollTo = ({ left, top }: ScrollToOptions) => {
-    diagram.scrollLeft = Number(left);
-    diagram.scrollTop = Number(top);
+  (dom.window.HTMLElement.prototype as any).scrollTo = ({ left, top }: ScrollToOptions) => {
+    diagram.querySelector<HTMLElement>(".mermaid-viewport")!.scrollLeft = Number(left);
+    diagram.querySelector<HTMLElement>(".mermaid-viewport")!.scrollTop = Number(top);
   };
   return { dom, diagram, svg };
 }
@@ -28,26 +28,26 @@ describe("Mermaid interaction", () => {
     expect(svg.style.width).toBe("1000px");
     expect(diagram.querySelector(".mermaid-zoom-label")?.textContent).toBe("125%");
 
-    diagram.scrollLeft = 120;
-    diagram.scrollTop = 80;
+    diagram.querySelector<HTMLElement>(".mermaid-viewport")!.scrollLeft = 120;
+    diagram.querySelector<HTMLElement>(".mermaid-viewport")!.scrollTop = 80;
     reset.click();
     expect(svg.style.width).toBe("800px");
-    expect(diagram.scrollLeft).toBe(0);
-    expect(diagram.scrollTop).toBe(0);
+    expect(diagram.querySelector<HTMLElement>(".mermaid-viewport")!.scrollLeft).toBe(0);
+    expect(diagram.querySelector<HTMLElement>(".mermaid-viewport")!.scrollTop).toBe(0);
   });
 
   it("only captures the wheel gesture when Control requests diagram zoom", () => {
     const { dom, diagram, svg } = createDiagram();
     initializeDiagram(diagram);
     const ordinaryWheel = new dom.window.WheelEvent("wheel", { deltaY: -1, cancelable: true });
-    diagram.dispatchEvent(ordinaryWheel);
+    diagram.querySelector(".mermaid-viewport")!.dispatchEvent(ordinaryWheel);
     expect(ordinaryWheel.defaultPrevented).toBe(false);
     expect(svg.style.width).toBe("800px");
 
     const zoomWheel = new dom.window.WheelEvent("wheel", {
       deltaY: -1, ctrlKey: true, cancelable: true, clientX: 100, clientY: 100
     });
-    diagram.dispatchEvent(zoomWheel);
+    diagram.querySelector(".mermaid-viewport")!.dispatchEvent(zoomWheel);
     expect(zoomWheel.defaultPrevented).toBe(true);
     expect(svg.style.width).toBe("1000px");
   });
