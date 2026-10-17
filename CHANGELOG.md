@@ -4,6 +4,14 @@ All notable user-facing changes to Markdown Editor are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.5.0] - 2026-10-17
+
+### Added
+
+- Optional H1/H2 table of contents with heading navigation, live updates, and a
+  per-user visibility preference restored across launches. Contents is visible
+  by default and excluded from PDF exports.
+
 ## [1.4.0] - 2026-09-13
 
 ### Changed

@@ -7,6 +7,7 @@ public sealed class ApplicationSettings
     public bool RestorePreviousSession { get; set; } = true;
     public bool ConfirmExternalLinks { get; set; } = true;
     public bool OpenPdfAfterExport { get; set; } = true;
+    public bool ShowTableOfContents { get; set; } = true;
     public double SplitRatio { get; set; } = 0.5;
     public double WindowWidth { get; set; } = 1280;
     public double WindowHeight { get; set; } = 800;

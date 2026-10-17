@@ -15,6 +15,7 @@ public sealed class JsonSettingsStoreTests : TemporaryDirectoryTest
         settings.SchemaVersion.Should().Be(1);
         settings.RestorePreviousSession.Should().BeTrue();
         settings.SplitRatio.Should().Be(0.5);
+        settings.ShowTableOfContents.Should().BeTrue();
     }
 
     [Fact]
@@ -24,6 +25,7 @@ public sealed class JsonSettingsStoreTests : TemporaryDirectoryTest
         var expected = new ApplicationSettings
         {
             Theme = "light",
+            ShowTableOfContents = false,
             RestorePreviousSession = false,
             SplitRatio = 0.7,
             TranslationSourceLanguage = "th",
@@ -34,6 +36,35 @@ public sealed class JsonSettingsStoreTests : TemporaryDirectoryTest
         var actual = await store.LoadAsync();
 
         actual.Should().BeEquivalentTo(expected);
+    }
+
+    [Fact]
+    public async Task LoadAsync_WhenOlderSettingsOmitContentsPreference_DefaultsToVisible()
+    {
+        Directory.CreateDirectory(DirectoryPath);
+        await File.WriteAllTextAsync(Path.Combine(DirectoryPath, "settings.json"),
+            "{\"Theme\":\"light\"}");
+
+        var settings = await new JsonSettingsStore(DirectoryPath).LoadAsync();
+
+        settings.ShowTableOfContents.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task SaveAsync_RestoresLatestContentsPreferenceInANewStore(bool visible)
+    {
+        var store = new JsonSettingsStore(DirectoryPath);
+        var settings = await store.LoadAsync();
+        settings.ShowTableOfContents = !visible;
+        await store.SaveAsync(settings);
+        settings.ShowTableOfContents = visible;
+        await store.SaveAsync(settings);
+
+        var restored = await new JsonSettingsStore(DirectoryPath).LoadAsync();
+
+        restored.ShowTableOfContents.Should().Be(visible);
     }
 
     [Fact]

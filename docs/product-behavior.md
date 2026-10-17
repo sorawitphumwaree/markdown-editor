@@ -27,6 +27,12 @@ general-purpose IDE features.
 
 ## Cross-pane navigation
 
+The optional right-hand table of contents lists the active document's H1/H2
+headings in document order. It refreshes with document edits and tab changes;
+selecting an entry navigates both preview and source. The toolbar's Contents
+toggle is visible by default and persists its latest choice per Windows user
+across launches. The navigation panel is excluded from print/PDF output.
+
 Navigation is deliberate rather than continuously scroll-coupled:
 
 - Clicking an editor line moves only the preview to the most precise matching

@@ -29,6 +29,7 @@ public partial class MainWindow : Window
     private readonly ITranslationProvider _translationProvider;
     private ApplicationSettings _settings = new();
     private bool _webReady;
+    private readonly SemaphoreSlim _settingsSaveGate = new(1, 1);
     private bool _synchronizingViewToggle;
     private TaskCompletionSource<bool>? _exportReady;
     private Point? _tabDragOrigin;
@@ -58,6 +59,7 @@ public partial class MainWindow : Window
         try
         {
             _settings = await _settingsStore.LoadAsync();
+            ContentsButton.IsChecked = _settings.ShowTableOfContents;
             await WebView.EnsureCoreWebView2Async();
             var webRoot = Path.Combine(AppContext.BaseDirectory, "Web");
             WebView.CoreWebView2.SetVirtualHostNameToFolderMapping(
@@ -97,6 +99,9 @@ public partial class MainWindow : Window
         {
             case "web.ready":
                 _webReady = true;
+                await PostAsync("view.setContentsVisibility", null,
+                    new { visible = _settings.ShowTableOfContents });
+                ContentsButton.IsEnabled = true;
                 await ActivateDocumentAsync();
                 break;
             case "document.changed":
@@ -392,6 +397,44 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void ToggleContents(object sender, RoutedEventArgs e)
+    {
+        var previous = _settings.ShowTableOfContents;
+        ContentsButton.IsEnabled = false;
+        try
+        {
+            _settings.ShowTableOfContents = ContentsButton.IsChecked == true;
+            await SaveSettingsAsync();
+            await PostAsync("view.setContentsVisibility", null,
+                new { visible = _settings.ShowTableOfContents });
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            _settings.ShowTableOfContents = previous;
+            ContentsButton.IsChecked = previous;
+            _logger.LogWarning(ex, "Could not save contents visibility");
+            MessageBox.Show("Could not save the contents preference. Please try again.",
+                "Markdown Editor", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        finally
+        {
+            ContentsButton.IsEnabled = true;
+        }
+    }
+
+    private async Task SaveSettingsAsync()
+    {
+        await _settingsSaveGate.WaitAsync();
+        try
+        {
+            await _settingsStore.SaveAsync(_settings);
+        }
+        finally
+        {
+            _settingsSaveGate.Release();
+        }
+    }
+
     private async void SelectPreviewView(object sender, RoutedEventArgs e)
     {
         if (_synchronizingViewToggle)
@@ -495,7 +538,7 @@ public partial class MainWindow : Window
             return;
         _settings.TranslationSourceLanguage = dialog.SourceLanguageCode;
         _settings.TranslationDestinationLanguage = dialog.DestinationLanguageCode;
-        await _settingsStore.SaveAsync(_settings);
+        await SaveSettingsAsync();
         _viewModel.Status = "Translation language settings saved";
     }
 
